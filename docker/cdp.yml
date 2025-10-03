@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  cldr-ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cldr-ansible:latest
+    container_name: cldr-ansible
+    hostname: cldr.cloudera.dev
+
+    # run as your non-root user inside container
+    user: "9999:9999"         # keep consistent with Dockerfile UID/GID
+    working_dir: /home/mtaabich
+
+    volumes:
+      - ../:/projects
+      - ../entreprise:/entreprise
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+    privileged: true          # required for systemd in container
+    cap_add:
+      - SYS_ADMIN
+
+    tty: true                 # keep container open
+    stdin_open: true          # allows `docker-compose exec -it ...`

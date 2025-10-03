@@ -1,0 +1,62 @@
+cluster_update_config: 
+  HDFS:
+    SERVICEWIDE:
+      enable_ranger_authorization: "true"
+      ranger_security_safety_valve: "<property><name>ranger.plugin.hdfs.chained.services</name><value>cm_hive</value></property><property><name>ranger.plugin.hdfs.chained.services.cm_hive.impl</name><value>org.apache.ranger.chainedplugin.hdfs.hive.RangerHdfsHiveChainedPlugin</value></property><property><name>ranger.plugin.hdfs.privileged.user.names</name><value>admin,dpprofiler,hue,beacon,hive,impala</value></property><property><name>ranger.plugin.hdfs.service.names</name><value>hive,impala</value></property>"
+
+  RANGER:
+    RANGER_ADMIN:
+      ranger_admin_max_heap_size: 1024
+      ranger_authentication_method: "LDAP"
+      ranger.ldap.url: "{{ auth_provider.ldap_url }}"
+      ranger.ldap.bind.dn: "{{ auth_provider.ldap_bind_user_dn }}"
+      ranger_ldap_bind_password: "{{ auth_provider.ldap_bind_password }}"
+      ranger.ldap.user.dnpattern: "uid={0},{{ auth_provider.ldap_search_base.user }}"
+      ranger.ldap.base.dn: "{{ auth_provider.ldap_base_dn }}"
+      ranger.ldap.user.searchfilter: "(&(sAMAccountName={0})(objectClass=person))"
+      ranger.ldap.group.searchfilter: "(&(member={0})(objectClass=group))"
+      ranger.ldap.group.searchbase: "{{ auth_provider.ldap_search_base.group }}"
+      ranger.ldap.group.roleattribute: "{{ auth_provider.ldap_attribute.group }}"
+      ranger.ldap.referral: "follow"
+
+    RANGER_TAGSYNC:
+      ranger_tagsync_max_heap_size: 1024
+    RANGER_USERSYNC:
+      ranger_usersync_max_heap_size: 1024
+      ranger.usersync.ldap.binddn: "{{ auth_provider.ldap_bind_user_dn }}"
+      ranger.usersync.ldap.url: "{{ auth_provider.ldap_url }}"
+      ranger_usersync_ldap_ldapbindpassword: "{{ auth_provider.ldap_bind_password }}"
+      ranger.usersync.ldap.referral: follow
+      ranger.usersync.ldap.username.caseconversion: lower
+      ranger.usersync.ldap.groupname.caseconversion: lower
+      ranger.usersync.ldap.grouphierarchylevels: 0
+      ranger.usersync.group.memberattributename: "{{ auth_provider.ldap_attribute.member }}"
+      ranger.usersync.group.nameattribute: "{{ auth_provider.ldap_attribute.group }}"
+      ranger.usersync.group.objectclass: group
+      ranger.usersync.group.searchbase: "{{ auth_provider.ldap_search_base.group }}"
+      #ranger.usersync.group.searchfilter: ""
+      #ranger.usersync.ldap.user.searchfilter: ""
+      ranger.usersync.ldap.user.nameattribute: "{{ auth_provider.ldap_attribute.user }}"
+      ranger.usersync.ldap.user.objectclass: person
+      ranger.usersync.ldap.user.searchbase: "{{ auth_provider.ldap_search_base.user }}"
+      ranger.usersync.source.impl.class: org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder
+      ranger.usersync.user.searchenabled: 'true'
+      ranger.usersync.group.based.role.assignment.rules: "&ROLE_KEY_ADMIN:g:admins&ROLE_SYS_ADMIN:g:admins"
+
+
+
+  SMM:
+    SERVICEWIDE:
+      streams.messaging.manager.internal.topics.replication.factor: 1
+
+
+  SOLR:
+    SERVICEWIDE:
+      solr_java_heapsize: 8589934592
+      solr_java_direct_memory_size: 8589934592
+      
+
+  mgmt_configs:
+    SERVICEMONITOR:
+      firehose_heapsize: 2147483648
+      firehose_non_java_memory_bytes: 12884901888

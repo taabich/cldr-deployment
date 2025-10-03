@@ -1,0 +1,22 @@
+# Copyright 2022 TOSIT.IO
+# SPDX-License-Identifier: Apache-2.0
+
+---
+- name: Import variables specific to distribution
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ role_path }}/vars/{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_version'] }}.yml"
+    - "{{ role_path }}/vars/{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "{{ role_path }}/vars/{{ ansible_facts['distribution'] }}.yml"
+    # os_family is used as a fallback for distros which are not currently
+    # supported, but are based on a supported distro family. For example,
+    # Oracle, Rocky, Alma and Alibaba linux, which are all "RedHat" based.
+    - "vars/{{ ansible_facts['os_family'] }}-{{ ansible_facts['distribution_version'] }}.yml"
+    - "vars/{{ ansible_facts['os_family'] }}-{{ ansible_facts['distribution_major_version'] }}.yml"
+    - "vars/{{ ansible_facts['os_family'] }}.yml"
+    # If neither distro nor family is supported, try a default configuration.
+    - "{{ role_path }}/vars/default.yml"
+
+- import_tasks: packages.yml
+- import_tasks: install_openldap_server.yml
+- import_tasks: install_kerberos_server.yml

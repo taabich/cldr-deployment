@@ -1,0 +1,6 @@
+
+*.log
+tmp/
+entreprise
+config
+ansible_roles

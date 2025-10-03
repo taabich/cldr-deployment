@@ -1,0 +1,69 @@
+#- name: pip install --upgrade pip
+#  shell: pip install --upgrade pip
+#  when: ansible_os_family == "RedHat"
+
+- name: package rust ansible_distribution_major_version|int  < 9
+  package:
+    name:
+      - rust
+      - htslib
+      - python3-cryptography
+      - python3-pyOpenSSL
+      - python38-cffi   
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int  < 9
+
+- name: package rust  ansible_distribution_major_version|int  >= 9
+  package:
+    name:
+      - rust
+      - python3-cryptography
+      - python3-pyOpenSSL
+      - python3-pip
+      - python3-setuptools
+      - python39
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int  >= 9
+
+
+
+
+- name: Ensure wheel is present on RHEL9
+  ansible.builtin.pip:
+    name: wheel
+    state: present
+    executable: /usr/bin/pip3
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int >= 9
+
+- name: Install setuptools-rust on RHEL9
+  ansible.builtin.pip:
+    name: setuptools-rust
+    state: present
+    executable: /usr/bin/pip3
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version | int >= 9
+
+
+
+- name: Check if file {{local_csrs_dir}} exists
+  local_action: stat path={{ local_csrs_dir }}
+  register: local_src_check
+  run_once: true
+
+
+- name: create local dir csrs
+  local_action: file path={{ local_csrs_dir }} state=directory
+  when: not local_src_check.stat.exists
+  run_once: true
+
+- name: Check if file {{local_certs_dir}} exists
+  local_action: stat path={{ local_certs_dir }}
+  register: local_src_check
+  run_once: true
+
+
+- name: create local dir certs
+  local_action: file path={{ local_certs_dir }} state=directory
+  when: not local_src_check.stat.exists
+  

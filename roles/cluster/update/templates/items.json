@@ -1,0 +1,34 @@
+{% for service_name, service_data in merged_services.items() %}
+{
+  "refName": "{{ service_name | lower }}",
+  "serviceType": "{{ service_name }}",
+  "displayName": "{{ service_name }}",
+  {% if 'SERVICEWIDE' in service_data %}
+  "serviceConfigs": [
+    {% for key, value in service_data.SERVICEWIDE.items() %}
+    {
+      "name": "{{ key }}",
+      "value": {{ value | to_json }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  "roleConfigGroups": [
+    {% for role, config in service_data.items() if role != 'SERVICEWIDE' %}
+    {
+      "refName": "{{ service_name | lower }}-{{ role | upper }}-BASE",
+      "roleType": "{{ role | upper }}",
+      "configs": [
+        {% for key, value in config.items() %}
+        {
+          "name": "{{ key }}",
+          "value": {{ value | to_json }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      "base": true
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}{% if not loop.last %},{% endif %}
+{% endfor %}

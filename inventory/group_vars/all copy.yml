@@ -1,0 +1,144 @@
+# Cluster configuration
+# Basic cluster metadata
+cluster_name: aman                    # Name of the CDP cluster
+admin_user: admin                          # Cloudera Manager admin user
+admin_password: Secure123!                 # All services
+cloudera_manager_admin_password: "{{ admin_password }}"
+# Java setup
+java_version: openjdk-17-jdk               # Java version to be installed/used
+
+# Networking
+external_dns: no                           # Whether external DNS is used (yes/no)
+ecs_enabled: yes                            # Whether external DNS is used (yes/no)
+# Database backend
+database_type: 'postgresql'                # Supported: postgresql, mysql, oracle
+database_password: "{{ admin_password }}"
+# Kerberos configuration
+krb5_kdc_type: 'Red Hat IPA'               # Kerberos KDC type (none, MIT KDC, AD, Red Hat IPA)
+krb5_admin: admin                          # Admin user for Kerberos (IPA)
+krb5_password: "{{ admin_password }}"      # Admin password reused from Cloudera Manager
+krb5_domain: aman.cloudera.intra            # Kerberos domain
+krb5_realm: "{{ krb5_domain|upper }}"      # Realm in uppercase (e.g., CDPQUAL.ONDA.INTRA)
+#krb5_kdc_active_directory_suffix: ou=cldr,dc=mta,dc=local
+# FreeIPA or IPA server domain
+
+
+kerberos_enabled:  "{{ (krb5_kdc_type is defined and krb5_kdc_type != 'none') | bool }}"
+freeipa_install: yes
+freeipa_client_install: yes
+
+
+database_install: yes
+
+# Licensing
+cloudera_manager_license_file: "{{entreprise_license}}"  # License file path
+cloudera_manager_license_type: 'enterprise'                                            # License type: trial or enterprise
+
+# Cloudera Manager connection details
+cloudera_manager_host: "{{ groups['cloudera_manager'][0] | default('localhost') }}"  # Host running CM
+cloudera_manager_port: 7180                      # Port for Cloudera Manager HTTP API
+cloudera_runtime_version: 7.1.9                  # CDP Runtime version to deploy
+cloudera_manager_version: 7.13.1                 # Cloudera Manager version
+
+
+os_version: "redhat8"
+
+# Host where the Cloudera local repository is hosted (usually running Apache httpd)
+repo_host: "{{ groups['httpd_repo'][0] | default('localhost') }}"
+
+# Cloudera Manager version and tarball file to be used for installation
+cm_version: "7.13.1.400"                           # Cloudera Manager version
+cm_tarball: cm7.13.1.400-redhat8.tar.gz            # CM tarball file name for Red Hat 9
+
+# CDH (Cloudera Distribution Hadoop) parcel version and filename
+cdh_version: "7.1.9.1042"                          # Version of the CDH runtime
+cdh_parcel_base: "CDH-7.1.9-1.cdh7.1.9.p1042.65851740-el8.parcel"  # CDH parcel file for EL9
+
+# Spark 3 parcel version and file name
+spark_version: "3.3.7191000.9"                     # Spark 3 version for CDP
+spark_parcel_base: "SPARK3-3.3.2.3.3.7191000.9-2-1.p0.65266237-el8.parcel"  # Spark3 parcel for EL9
+
+# CFM (Cloudera Flow Management) version and parcel file
+cfm_version: "2.1.7.2002"                          # CFM version
+cfm_parcel_base: "CFM-2.1.7.2002-3-el8.parcel"
+
+nifi_jar_name: "NIFI-1.28.1.2.1.7.2002-3.jar"
+nifi_registry_jar_name: "NIFIREGISTRY-1.28.1.2.1.7.2002-3.jar"
+
+# Base URL to access Cloudera archive hosted locally
+cloudera_archive_base_url: http://{{repo_host}}:9090/cloudera-repos
+
+# HTTPD port used by the local Cloudera repo server
+httpd_port: 8080
+
+# List of repositories (local) for parcels used in deployment
+repositories: 
+  # Official CDH 7.1.9.0 parcels
+  - http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/cdh7/{{cdh_version}}/parcels/
+  # Spark 3 parcels
+  - http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/spark3/{{spark_version}}/parcels/
+  # CFM 2.1 parcels
+  - http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/cfm2/{{cfm_version}}/{{os_version}}/yum/tars/parcel/
+
+# Internal CM repository URL for installing Cloudera Manager packages
+cloudera_manager_repo_url: http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/cm7/{{cm_version}}/{{os_version}}/yum/
+# Alternative URLs for CM from public or internal Cloudera sources
+# cloudera_manager_repo_url: https://archive.cloudera.com/p/cm7/7.6.1/redhat8/yum/
+# cloudera_manager_repo_url: https://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/37037599/cm7/7.6.1/redhat7/yum/
+
+
+
+cloudera_manager_csds:
+  - http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/cfm2/{{cfm_version}}/{{os_version}}/yum/tars/parcel/{{nifi_jar_name}}
+  - http://{{repo_host}}:{{httpd_port}}/cloudera-repos/p/cfm2/{{cfm_version}}/{{os_version}}/yum/tars/parcel/{{nifi_registry_jar_name}}
+
+
+############################
+## Disks configuration ##
+############################
+# Set list of worker_nodes disks
+
+kafka_disks:
+  - /data/kafka01
+
+datanode_disks:
+  - /data/01
+
+namenode_disks:
+  - /data/nn1
+
+journalnode_disks: /data/jn
+
+solr_datadir: /data/solr
+infra_solr_datadir: /data/infrasolr
+
+nifi_provenance_disks:
+  - /data/01
+
+nifi_flow_disk: /data/01
+  
+nifi_content_disks:
+  - /data/01
+
+zk_datadir: "/var/lib/zookeeper"
+zk_logdir: "/var/lib/zookeeper"
+
+checkpoint_disks: /data/nn1
+
+
+
+private_key_path:  "{{ ansible_ssh_private_key_file }}"
+
+
+# LDAP DN info
+ipaserver_domain: aman.cloudera.intra       # IPA domain (must match krb5_domain)
+ipaadmin_password: "{{ krb5_password }}" 
+
+base_dc: "intra"
+base_dn: "dc=aman,dc=cloudera,dc=intra"
+user_dn: "cn=users,cn=accounts,{{ base_dn }}"
+group_dn: "cn=groups,cn=accounts,{{ base_dn }}"
+ldap_bind_dn: "uid={{krb5_admin}},{{ user_dn }}"
+
+
+
