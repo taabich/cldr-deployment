@@ -38,6 +38,10 @@
     {
       "name": "core_site_safety_valve",
       "value": "<property><name>hadoop.proxyuser.zeppelin.hosts</name><value>*</value></property><property><name>hadoop.proxyuser.zeppelin.groups</name><value>*</value></property><property><name>dfs.namenode.kerberos.principal.pattern</name><value>*</value></property>"
+    },
+    {
+      "name": "ranger_security_safety_valve",
+      "value": "<property><name>ranger.plugin.hdfs.chained.services</name><value>cm_hive</value></property><property><name>ranger.plugin.hdfs.chained.services.cm_hive.impl</name><value>org.apache.ranger.chainedplugin.hdfs.hive.RangerHdfsHiveChainedPlugin</value></property><property><name>ranger.plugin.hdfs.privileged.user.names</name><value>admin,dpprofiler,hue,beacon,hive,impala</value></property><property><name>ranger.plugin.hdfs.service.names</name><value>hive,impala</value></property>"
     }
 
   ],

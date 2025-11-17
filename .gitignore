@@ -5,3 +5,4 @@ entreprise
 ansible_roles
 .bash_history
 *.ini
+.ssh
