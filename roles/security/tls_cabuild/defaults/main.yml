@@ -1,0 +1,9 @@
+# convenience
+
+
+
+root_days: 3650
+inter_days: 1825
+
+root_key_bits: 4096
+inter_key_bits: 4096

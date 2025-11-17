@@ -1,9 +1,5 @@
-cluster_update_config: 
-  HDFS:
-    SERVICEWIDE:
-      enable_ranger_authorization: "true"
-      ranger_security_safety_valve: "<property><name>ranger.plugin.hdfs.chained.services</name><value>cm_hive</value></property><property><name>ranger.plugin.hdfs.chained.services.cm_hive.impl</name><value>org.apache.ranger.chainedplugin.hdfs.hive.RangerHdfsHiveChainedPlugin</value></property><property><name>ranger.plugin.hdfs.privileged.user.names</name><value>admin,dpprofiler,hue,beacon,hive,impala</value></property><property><name>ranger.plugin.hdfs.service.names</name><value>hive,impala</value></property>"
 
+cluster_update_config: 
   RANGER:
     RANGER_ADMIN:
       ranger_admin_max_heap_size: 1024
@@ -34,8 +30,6 @@ cluster_update_config:
       ranger.usersync.group.nameattribute: "{{ auth_provider.ldap_attribute.group }}"
       ranger.usersync.group.objectclass: group
       ranger.usersync.group.searchbase: "{{ auth_provider.ldap_search_base.group }}"
-      #ranger.usersync.group.searchfilter: ""
-      #ranger.usersync.ldap.user.searchfilter: ""
       ranger.usersync.ldap.user.nameattribute: "{{ auth_provider.ldap_attribute.user }}"
       ranger.usersync.ldap.user.objectclass: person
       ranger.usersync.ldap.user.searchbase: "{{ auth_provider.ldap_search_base.user }}"
@@ -43,20 +37,110 @@ cluster_update_config:
       ranger.usersync.user.searchenabled: 'true'
       ranger.usersync.group.based.role.assignment.rules: "&ROLE_KEY_ADMIN:g:admins&ROLE_SYS_ADMIN:g:admins"
 
+    LIVY:
+      LIVY_SERVER_FOR_SPARK3:
+        livy_max_heapsize: 536870912  
 
+    HIVE:
+      HIVEMETASTORE:
+        hive_metastore_java_heapsize: 1073741824 
+      HIVESERVER2:
+        hiveserver2_java_heapsize: 2147483648     
 
-  SMM:
-    SERVICEWIDE:
-      streams.messaging.manager.internal.topics.replication.factor: 1
+    OOZIE:
+      OOZIE_SERVER:
+        oozie_java_heapsize: 1073741824
 
+    ZOOKEEPER:
+      SERVER:
+        zookeeper_server_java_heapsize: 1073741824
 
-  SOLR:
-    SERVICEWIDE:
-      solr_java_heapsize: 8589934592
-      solr_java_direct_memory_size: 8589934592
-      
+    SPARK3_ON_YARN:
+      SPARK3_YARN_HISTORY_SERVER:
+        history_server_max_heapsize: 536870912
 
-  mgmt_configs:
-    SERVICEMONITOR:
-      firehose_heapsize: 2147483648
-      firehose_non_java_memory_bytes: 12884901888
+    SOLR:
+      SOLR_SERVER:
+        solr_java_heapsize: 26430406656
+        solr_java_direct_memory_size: 26430406656
+
+    HBASE:
+      HBASETHRIFTSERVER:
+        hbase_thriftserver_java_heapsize: 1073741824  
+      MASTER:
+        hbase_master_java_heapsize: 1073741824         
+      REGIONSERVER:
+        hbase_regionserver_java_heapsize: 33285996544  
+
+    IMPALA:
+      CATALOGD:
+        catalogd_embedded_jvm_heapsize: 4294967296
+      IMPALAD:
+        impalad_embedded_jvm_heapsize: 4294967296
+        impalad_memory_limit: 216133546803
+
+    HDFS:
+      BALANCER:
+        balancer_java_heapsize: 1073741824
+      DATANODE:
+        datanode_java_heapsize: 4294967296       
+      NAMENODE:
+        namenode_java_heapsize: 6442450944       
+      SECONDARY_NAMENODE:
+        secondary_namenode_java_heapsize: 4294967296
+
+    YARN:
+      JOBHISTORY:
+        mr2_jobhistory_java_heapsize: 1073741824  
+      NODEMANAGER:
+        node_manager_java_heapsize: 1073741824    
+      RESOURCEMANAGER:
+        resource_manager_java_heapsize: 1073741824  
+
+    MGMT:
+      EVENTSERVER:
+        event_server_heapsize: 1073741824
+      HOSTMONITOR:
+        firehose_heapsize: 1073741824
+      REPORTSMANAGER:
+        headlamp_heapsize: 1073741824
+
+    OZONE:
+      OZONE_DATANODE:
+        ozone_datanode_heap_size: 4096           
+      OZONE_MANAGER:
+        om_max_heap_size: 4096
+      OZONE_RECON:
+        ozone_recon_max_heap_size: 1024
+      S3_GATEWAY:
+        ozone_S3_gateway_max_heap_size: 1024
+      STORAGE_CONTAINER_MANAGER:
+        scm_max_heap_size: 4096
+
+    ATLAS:
+      ATLAS_SERVER:
+        atlas_max_heap_size: 2147483648
+
+    KNOX:
+      KNOX_GATEWAY:
+        gateway_heap_size: 1024
+
+    QUEUEMANAGER:
+      QUEUEMANAGER_STORE:
+        config_service_max_heap_size: 2147483648
+
+    RANGER_RMS:
+      RANGER_RMS_SERVER:
+        ranger_rms_max_heap_size: 1024
+
+    RANGER_KMS:
+      RANGER_KMS_SERVER:
+        ranger_kms_max_heap_size: 1024
+
+    PHOENIX:
+      PHOENIX_QUERY_SERVER:
+        phoenix_queryserver_max_heap_size: 2147483648
+
+    CRUISE_CONTROL:
+      CRUISE_CONTROL_SERVER:
+        cruise_control_heap_size: 1024

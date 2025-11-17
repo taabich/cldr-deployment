@@ -1,0 +1,83 @@
+{
+  "refName": "nifi",
+  "serviceType": "NIFI",
+  "displayName": "NIFI",
+  "serviceConfigs": [
+        {
+      "name": "kerberos.auth.enabled",
+      "value": "false"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "nifi-NIFI_NODE-BASE",
+      "roleType": "NIFI_NODE",
+      "configs":[
+        
+        {
+          "name": "nifi.security.identity.mapping.pattern.kerb",
+          "value": "{{ nifi_identity_mapping_pattern_kerb }}"
+        },
+        {
+          "name": "nifi.security.identity.mapping.value.kerb",
+          "value": "{{ nifi_identity_mapping_value_kerb }}"
+        },
+        {
+          "name": "nifi.autogen.node.identities.dn.suffix",
+          "value": "{{ nifi_autogen_node_identities_dn_suffix }}"
+        },
+        {
+          "name": "nifi.security.identity.mapping.value.dn",
+          "value": "{{ nifi_security_identity_mapping_value_dn }}"
+        },
+        {
+          "name": "nifi.web.https.port",
+          "value": "{{ nifi_web_https_port | string }}"
+        },
+        {
+          "name": "java.arg.2",
+          "value": "{{ nifi_java_arg_2 }}"
+        },
+        {
+          "name": "java.arg.3",
+          "value": "{{ nifi_java_arg_3 }}"
+        },
+        {
+          "name": "xml.authorizers.userGroupProvider.shell-user-group-provider.enabled",
+          "value": "{{ nifi_shell_user_provider_enabled | string | lower }}"
+        },
+        {
+          "name": "xml.authorizers.userGroupProvider.shell-user-group-provider.property.Exclude Groups",
+          "value": "{{ nifi_shell_user_provider_exclude_groups }}"
+        },
+        {
+          "name": "xml.authorizers.userGroupProvider.shell-user-group-provider.property.Exclude Users",
+          "value": "{{ nifi_shell_user_provider_exclude_users }}"
+        },
+        {
+          "name": "staging/authorizers.xml_role_safety_valve",
+          "value": "{{ nifi_authorizers_xml_role_safety_valve | trim }}"
+        },
+        {
+          "name": "nifi.content.repository.directory.default",
+          "value": "{{ content_repository }}"
+        },
+        {
+          "name": "nifi.flowfile.repository.directory",
+          "value": "{{ flowfile_repository }}"
+        },
+        {
+          "name": "nifi.provenance.repository.directory.default",
+          "value": "{{ provenance_repository }}"
+        }
+      ],
+      "base": true
+    },
+     {
+      "refName": "nifi-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }      
+  ]
+}

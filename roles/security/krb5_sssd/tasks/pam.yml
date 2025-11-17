@@ -1,0 +1,42 @@
+---
+
+
+
+
+- name: Ensure pam_sss.so is the first auth line in /etc/pam.d/su
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    regexp: '^\s*auth\s+sufficient\s+pam_sss\.so'
+    line:   'auth       sufficient    pam_sss.so    # ansible changed'
+    insertbefore: BOF
+- name: Check if Knox is installed (directory exists)
+  ansible.builtin.stat:
+    path: /var/lib/knox/gateway
+  register: knox_dir
+
+- name: Create /etc/pam.d/knoxsso with KnoxSSO-specific PAM config
+  ansible.builtin.copy:
+    dest: /etc/pam.d/knoxsso
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # KnoxSSO-specific PAM configuration
+      # Authentication
+      auth       required     pam_env.so
+      auth       sufficient   pam_sss.so
+      auth       required     pam_unix.so nullok
+
+      # Account — pam_nologin.so is intentionally skipped here
+      account    sufficient   pam_sss.so
+      account    required     pam_unix.so
+
+      # Password
+      password   sufficient   pam_sss.so
+      password   required     pam_unix.so
+
+      # Session
+      session    required     pam_limits.so
+      session    optional     pam_sss.so
+      session    required     pam_unix.so
+  when: knox_dir.stat.exists

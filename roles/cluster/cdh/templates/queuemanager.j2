@@ -1,0 +1,56 @@
+{
+  "refName": "queuemanager",
+  "serviceType": "QUEUEMANAGER",
+  "displayName": "QUEUEMANAGER",
+  "serviceConfigs": [
+    {
+      "name": "zookeeper_service",
+      "ref": "zookeeper"
+    },
+    {
+      "name": "kerberos.auth.enabled",
+      "value": "false"
+    },
+    {
+      "name": "queuemanager_database_host",
+      "value": "{{ databases.QUEUEMANAGER.host }}"
+    },
+    {
+      "name": "queuemanager_database_port",
+      "value": "{{ databases.QUEUEMANAGER.port }}"
+    },
+    {
+      "name": "queuemanager_database_name",
+      "value": "{{ databases.QUEUEMANAGER.name }}"
+    },
+    {
+      "name": "queuemanager_database_user",
+      "value": "{{ databases.QUEUEMANAGER.user }}"
+    },
+    {
+      "name": "queuemanager_database_password",
+      "value": "{{ databases.QUEUEMANAGER.password }}"
+    }
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "queuemanager-QUEUEMANAGER_WEBAPP-BASE",
+      "roleType": "QUEUEMANAGER_WEBAPP",
+      "configs": [
+      ],
+      "base": true
+    },
+    {
+      "refName": "queuemanager-QUEUEMANAGER_STORE-BASE",
+      "roleType": "QUEUEMANAGER_STORE",
+      "configs": [
+        {
+          "name": "config_service_max_heap_size",
+          "value": "{{ config_service_max_heap_size | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

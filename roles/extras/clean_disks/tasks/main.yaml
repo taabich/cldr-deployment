@@ -1,0 +1,10 @@
+- name: Clean disks via include
+  include_tasks: clean_disks.yaml
+  loop: "{{ all_disks_to_clean }}"
+  loop_control:
+    loop_var: disk_or_dir
+    label:  "Clean disk: {{ disk_or_dir }}"
+  vars:
+    target_dir: "{{ disk_or_dir }}"
+
+

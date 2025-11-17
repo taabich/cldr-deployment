@@ -1,0 +1,14 @@
+
+- name:  Ensure AD DNS entry is up to date in /etc/hosts
+  hosts: cloudera_manager, cluster
+  become: yes
+  tasks:
+  - name: Ensure AD DNS entry is up to date in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      regexp: '.*\sad\.cloudera\.infra$'
+      line: '52.86.152.254 EC2AMAZ-LOAEQMH.cloudera.infra'
+      state: present
+      backup: yes
+      create: yes
+      unsafe_writes: yes

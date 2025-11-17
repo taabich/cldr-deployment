@@ -1,0 +1,2 @@
+cloudera_manager_agent_config_file: /etc/cloudera-scm-agent/config.ini
+cloudera_manager_host_local: "{{ groups.cloudera_manager | first | default('localhost') }}"

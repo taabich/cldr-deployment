@@ -1,0 +1,30 @@
+{
+  "refName": "flink",
+  "serviceType": "FLINK",
+  "displayName": "FLINK",
+  "serviceConfigs": [
+    { "name": "yarn_service", "ref": "yarn" },
+    { "name": "hdfs_service", "ref": "hdfs" },
+    { "name": "zookeeper_service", "ref": "zookeeper" }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "flink-FLINK_HISTORY_SERVER-BASE",
+      "roleType": "FLINK_HISTORY_SERVER",
+      "configs": [
+        {
+          "name": "historyserver_web_port",
+          "value": "{{ flink_historyserver_web_port | string }}"
+        }
+      ],
+      "base": true
+    }
+    ,
+    {
+      "refName": "flink-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+  ]
+}

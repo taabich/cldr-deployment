@@ -1,0 +1,33 @@
+---
+
+
+- set_fact:
+    databases: "{{ databases_cm_svcs  }}"
+
+- name: Define target host ID for Cloudera Management Service installation
+  set_fact:
+    mgmt_service_api_host_id: "{{ cloudera_manager_api_hosts[cloudera_manager_host_local]['id'] }}"
+  when: mgmt_service_api_host_id is not defined
+
+- name: Generate cluster template file
+  template:
+    src: cms_base.j2
+    dest: /tmp/cms_template.json
+    mode: 0600
+
+- name: Add Cloudera Management Service
+  cm_api:
+    endpoint: /cm/service
+    method: PUT
+    body: "{{ lookup('template', 'cms_base.j2', convert_data=False) }}"
+  register: api_cm_service_response
+  failed_when:
+    - "'MGMT' not in api_cm_service_response.content"
+    - "'CMS instance already exists' not in api_cm_service_response.content"
+
+- name: Start Cloudera Management Service
+  cm_api:
+    endpoint: /cm/service/commands/restart
+    method: POST
+  register: api_cm_service_start
+  failed_when: "not api_cm_service_start.json['success'] or 'startTime' not in api_cm_service_start.content"

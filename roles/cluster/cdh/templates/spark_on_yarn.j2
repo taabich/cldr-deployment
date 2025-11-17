@@ -1,0 +1,38 @@
+
+{% set service_dependencies = {
+  'YARN': 'yarn',
+  'HBASE': 'hbase',
+  'ATLAS': 'atlas',
+  'KNOX': "knox"
+} %}
+{
+  "refName": "spark_on_yarn",
+  "serviceType": "SPARK_ON_YARN",
+  "displayName": "SPARK_ON_YARN",
+  "serviceConfigs": [
+
+   {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "spark_on_yarn-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "base": true
+    }, {
+      "refName": "spark_on_yarn-SPARK_YARN_HISTORY_SERVER-BASE",
+      "roleType": "SPARK_YARN_HISTORY_SERVER",
+      "configs": [
+        {
+          "name": "history_server_spnego_enabled",
+          "value": "false"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

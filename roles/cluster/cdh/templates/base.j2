@@ -1,0 +1,27 @@
+{
+{% set cluster_type = cluster.type | default('base') %}
+  "cdhVersion" : "{{ cloudera_runtime_version }}",
+  "displayName" : "{{ cluster.name }}",
+  "cmVersion" : "{{ cloudera_manager_version }}",
+
+  "products" : [
+    {% set prod_j = joiner(",") %}
+    {% for product in scm_products %}
+    {{ prod_j() }}
+    {
+      "product" : "{{ product.split('-')[0] }}",
+      "version" : "{{ '-'.join(product.split('-')[1:]) }}"
+    }
+    {% endfor %}
+  ],
+  "services" : [
+    {% include 'core_settings.j2' %},
+    {% set serv_j = joiner(",") %}
+    {% for service in enabled_services %}
+    {{ serv_j() }}
+    {% set t = service + '.j2' %}{% include t %}
+    {% endfor %}
+  ],
+  "hostTemplates" : {% include 'host_templates.j2' %},
+  "instantiator" : {% include 'instantiator.j2' %}
+}

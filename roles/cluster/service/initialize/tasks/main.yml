@@ -1,0 +1,126 @@
+
+
+
+- name: Get list of services in the cluster
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services"
+    force_basic_auth: yes
+    return_content: yes
+    method: GET
+  register: services_installed
+
+- name: Check if HDFS service exists
+  set_fact:
+    hdfs_exists: >-
+      {{
+        services_installed.json.items | selectattr('type', 'equalto', 'HDFS') | list | length > 0
+      }}
+
+
+- name: Get HDFS service status
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services/hdfs"
+    return_content: yes
+    method: GET
+  register: hdfs_status
+  when: hdfs_exists 
+
+- name: Set is_hdfs_started to true if HDFS is STARTED
+  set_fact:
+    is_hdfs_started: "{{ hdfs_status.json.serviceState == 'STARTED' }}"
+  when: hdfs_exists 
+
+
+
+- name: Run HDFS-related service commands
+  include_tasks: run_command.yml
+  loop:
+    - { service_command: hdfsCreateTmpDir, service_name: hdfs }
+    - { service_command: hiveCreateHiveWarehouse, service_name: hive }
+    - { service_command: hbaseCreateUserDirectory, service_name: hbase }
+    - { service_command: hiveCreateHiveWarehouseExternal, service_name: hive }
+    - { service_command: impalaCreateUserDir, service_name: impala }
+    - { service_command: importMrConfigsIntoYarn, service_name: yarn }
+    - { service_command: yarnCreateJobHistoryDirCommand, service_name: yarn }
+    - { service_command: yarnNodeManagerRemoteAppLogDirCommand, service_name: yarn }
+    - { service_command: installMrFrameworkJars, service_name: yarn }
+    
+  loop_control:
+    loop_var: command_info
+  vars:
+    service_command: "{{ command_info.service_command }}"
+    service_name: "{{ command_info.service_name }}"
+  when: is_hdfs_started is defined and is_hdfs_started
+
+
+- name: Run Other-related service commands
+  include_tasks: run_command.yml
+  loop:
+    - { service_command: installOozieShareLib, service_name: oozie }
+    - { service_command: zooKeeperCleanup, service_name: zookeeper }
+    
+    
+  loop_control:
+    loop_var: command_info
+  vars:
+    service_command: "{{ command_info.service_command }}"
+    service_name: "{{ command_info.service_name }}"
+
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/firstRun
+
+#/clusters/{clusterName}/services/{serviceName}/commands/hbaseCreateRoot
+#POST
+#​/clusters​/{clusterName}​/services​/{serviceName}​/commands​/hbaseCreateUserDirectory
+#/clusters/{clusterName}/services/{serviceName}/commands/hdfsCreateTmpDir
+
+
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/hiveCreateHiveUserDir
+
+#/clusters/{clusterName}/services/{serviceName}/commands/hiveCreateHiveWarehouse
+
+#​/clusters​/{clusterName}​/services​/{serviceName}​/commands​/hiveCreateHiveWarehouseExternal
+
+#/clusters/{clusterName}/services/{serviceName}/commands/hiveCreateMetastoreDatabaseTables
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/impalaCreateUserDir
+
+#/clusters/{clusterName}/services/{serviceName}/commands/importMrConfigsIntoYarn
+
+
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/installMrFrameworkJars
+
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/yarnCreateJobHistoryDirCommand
+
+
+
+
+#/clusters/{clusterName}/services/{serviceName}/commands/yarnNodeManagerRemoteAppLogDirCommand
+
+#/clusters/{clusterName}/services/{serviceName}/commands/installOozieShareLib
+
+
+- name: Run Offline -related service commands
+  include_tasks: run_command.yml
+  loop:
+    - { service_command: initSolr, service_name: infra_solr }
+    - { service_command: zooKeeperInit, service_name: zookeeper }   
+  loop_control:
+    loop_var: command_info
+  vars:
+    service_command: "{{ command_info.service_command }}"
+    service_name: "{{ command_info.service_name }}"
+
+#​/clusters​/{clusterName}​/services​/{serviceName}​/commands​/initSolr
+#*​/clusters​/{clusterName}​/services​/{serviceName}​/commands​/yarnFormatStateStore (HA)
+#*clusters/{clusterName}/services/{serviceName}/commands/hdfsFailover
+# /clusters​/{clusterName}​/services​/{serviceName}​/commands​/zooKeeperCleanup
+# /clusters/{clusterName}/services/{serviceName}/commands/zooKeeperInit

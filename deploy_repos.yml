@@ -1,0 +1,5 @@
+- name: Install Repo
+  hosts: httpd_repo
+  become: yes
+  roles:
+    - extras/httpd_repo

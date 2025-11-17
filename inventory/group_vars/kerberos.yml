@@ -1,0 +1,18 @@
+#Configuration of kerberos
+ad_domain_controller: 'EC2AMAZ-LOAEQMH.cloudera.infra'
+#ad_domain_controller: 'ec2-52-86-152-254.compute-1.amazonaws.com'
+krb5_kdc_type: 'Active Directory'
+#krb5_kdc_type: 'Red Hat IPA'               # Kerberos KDC type (none, MIT KDC, AD, Red Hat IPA)
+krb5_admin: 'cdpadmin'                          # Admin user for Kerberos (IPA)
+krb5_password: "Cloudera2024"      # Admin password reused from Cloudera Manager
+krb5_domain: cloudera.infra            # Kerberos domain
+krb5_realm: "{{ krb5_domain|upper }}"      # Realm in uppercase (e.g., CDPQUAL.ONDA.INTRA)
+
+
+krb5_kdc_active_directory_suffix: "OU=CDPCluster,DC=cloudera,DC=infra"
+#ad_realm: "{{ ad_domain | upper }}"
+#ad_admin_user: "{{ krb5_admin | default('Administrator')}}"
+#ad_admin_password: "{{ krb5_password }}"
+krb5_kdc_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
+krb5_enc_types: "rc4-hmac aes256-cts aes128-cts"
+krb5_kadmin_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"

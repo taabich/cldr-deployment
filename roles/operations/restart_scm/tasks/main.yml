@@ -1,0 +1,15 @@
+- name: Start the Cloudera Manager Server
+  service:
+    name: cloudera-scm-server
+    state: restarted
+    enabled: yes
+  notify:
+    - wait cloudera-scm-server
+
+
+# Trigger handler to wait for SCM to startup
+- meta: flush_handlers
+
+
+
+

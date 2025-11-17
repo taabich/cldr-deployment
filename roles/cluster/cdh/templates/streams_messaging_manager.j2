@@ -1,8 +1,22 @@
+{% set service_dependencies = {
+  'ZOOKEEPER': 'zookeeper',
+  'KAFKA': 'kafka',
+  'RANGER': 'ranger',
+  'SCHEMAREGISTRY': 'schemaregistry',
+  'STREAMS_REPLICATION_MANAGER': 'streams_replication_manager'
+} %}
+
 {
   "refName": "streams_messaging_manager",
   "serviceType": "STREAMS_MESSAGING_MANAGER",
   "displayName": "SMM",
   "serviceConfigs": [
+      {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+        {
+          "name": "{{ ref }}_service",
+          "ref": "{{ ref }}"
+        }{% if not loop.last %},{% endif %}
+      {% endfor %},
       {
         "name": "smm_database_host",
         "value": "{{ databases.STREAMS_MESSAGING_MANAGER.host }}"
@@ -26,26 +40,22 @@
       {
         "name": "smm_database_password",
         "value": "{{ databases.STREAMS_MESSAGING_MANAGER.password }}"
-      }
+      },
+      {
+      "name": "kerberos.auth.enable",
+      "value": "false"
+    }
   ],
   "roleConfigGroups": [
     {
       "refName": "streams_messaging_manager-STREAMS_MESSAGING_MANAGER_SERVER-BASE",
       "roleType": "STREAMS_MESSAGING_MANAGER_SERVER",
       "configs": [
-      {% if kerberos_enabled %}
-      {
-        "name": "streams.messaging.manager.kerberos.name.rules",
-        "value": "RULE:[2:$1@$0](streamsmsgmgr@{{krb5_realm|upper}})s/(.*)@{{krb5_realm|upper}}/streamsmsgmgr/"
-      }
-      {% endif %}
-      {% if (replicator_min | int) < 3and kerberos_enabled %}
-      ,
-       {% endif %}
-      {% if (replicator_min | int) < 3%}
+    
+      {% if too_few_brokers %}
       {
         "name": "streams.messaging.manager.internal.topics.replication.factor",
-        "value": "{{replicator_min}}"
+        "value": 1
       }
       {% endif %}
       ],

@@ -1,0 +1,37 @@
+
+- name: Install Postgres Connector
+  hosts: ha_cluster
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: Ensure each inventory host is in /etc/hosts
+      debug:
+        msg: >-
+          {{ hostvars[item].ansible_host }}
+          {{ item }}
+          {{ item.split('.')[0] }}
+          {{ ' ' + hostvars[item].ansible_hostname.split('.')[0]
+             if (hostvars[item].ansible_hostname is defined
+                 and item != hostvars[item].ansible_hostname) else '' }}
+      loop: "{{ groups['all'] }}"
+      loop_control:
+        label: "{{ item }}"
+    
+    - name: Ensure each inventory host is in /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        create: yes
+        backup: yes
+        unsafe_writes: yes
+        # match on IP + FQDN so updates are idempotent
+        regexp: "^{{ hostvars[item].ansible_host }}\\s+{{ item }}\\b"
+        line: >-
+          {{ hostvars[item].ansible_host }}
+          {{ item }}
+          {{ item.split('.')[0] }}
+          {{ ' ' + hostvars[item].ansible_hostname.split('.')[0]
+             if (hostvars[item].ansible_hostname is defined
+                 and item != hostvars[item].ansible_hostname) else '' }}
+      loop: "{{ groups['all'] }}"
+      loop_control:
+        label: "{{ item }}"

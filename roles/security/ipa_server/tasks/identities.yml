@@ -1,0 +1,41 @@
+- name: Add group with gid "{{ in_item.group.name }}"
+  group:
+    name: "{{ in_item.group.name }}"
+    gid: "{{ in_item.group.name }}"
+    state: present
+    system: yes
+  when: in_item.group.gid  is defined
+  with_items:
+    - "{{ identities }}"
+  loop_control:
+    loop_var: in_item
+    label: " {{ in_item.group.name  }}"
+
+- name: Add group without gid "{{ in_item.group.name }}"
+  group:
+    name: "{{ in_item.group.name }}"
+    state: present
+    system: yes
+  when: in_item.group.gid is not defined
+  with_items:
+    - "{{ identities }}"
+  loop_control:
+    loop_var: in_item
+    label: " {{ in_item.group.name  }}"
+
+- name: Add user "{{in_item.user.name}}"
+  user:
+    name: "{{in_item.user.name}}"
+    uid: "{{in_item.user.uid}}"
+    group: "{{in_item.user.gid}}"
+    state: present
+    groups: "{{in_item.user.groups}}"
+    system: "{{in_item.user.system}}"
+    shell: "{% if in_item.user.shell is defined and  in_item.user.shell%}{{in_item.user.shell}}{% else %}/bin/bash{% endif %}"
+    home:  "{{in_item.user.home}}"
+    createhome: yes
+  with_items:
+    - "{{ identities }}"
+  loop_control:
+    loop_var: in_item
+    label: " {{ in_item.user.name}}"

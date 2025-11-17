@@ -1,0 +1,29 @@
+{
+  "refName": "nifiregistry",
+  "serviceType": "NIFIREGISTRY",
+  "displayName": "NIFIREGISTRY",
+  "serviceConfigs": [],
+  "roleConfigGroups": [
+    {
+      "refName": "nifiregistry-NIFI_REGISTRY_SERVER-BASE",
+      "roleType": "NIFI_REGISTRY_SERVER",
+      "configs": [
+        {
+          "name": "nifi.registry.security.identity.mapping.pattern.kerb",
+          "value": "^(.*?)@(.*?)$"
+        },
+        {
+          "name": "nifi.registry.security.identity.mapping.value.kerb",
+          "value": "$1"
+        }
+      ],
+      "base": true
+    },
+     {
+      "refName": "nifiregistry-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }      
+  ]
+}

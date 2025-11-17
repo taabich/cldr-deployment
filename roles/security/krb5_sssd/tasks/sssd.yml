@@ -1,0 +1,92 @@
+# Copyright 2022 TOSIT.IO
+# SPDX-License-Identifier: Apache-2.0
+
+---
+
+
+
+- name: Install sssd and oddjob-mkhomedir
+  package:
+    name:
+      - sssd
+      - oddjob-mkhomedir
+
+- name: check /etc/krb5.conf.d/kcm_default_ccache
+  stat:
+    path: /etc/krb5.conf.d/kcm_default_ccache
+  register: jkrb
+
+
+- name: Disable sssd-kcm cache
+  replace:
+    path: /etc/krb5.conf.d/kcm_default_ccache
+    regexp: '(^(?!#).*default_ccache_name = KCM:*)'
+    replace: '#\1'
+  when: ansible_distribution_major_version | int > 7 and jkrb.stat.exists
+
+- name: Template openldap sssd.conf
+  template:
+    src: sssd_openldap.conf.j2
+    dest: /etc/sssd/sssd.conf
+    mode: 0600
+  when: krb5_kdc_type == 'MIT KDC'
+  notify: restart sssd
+
+- name: Template freeipa sssd.conf
+  template:
+    src: sssd_freeipa.conf.j2
+    dest: /etc/sssd/sssd.conf
+    mode: 0600
+  when: krb5_kdc_type == 'Red Hat IPA'
+  notify: restart sssd
+
+- name: Template AD sssd.conf
+  template:
+    src: sssd_ad.conf.j2
+    dest: /etc/sssd/sssd.conf
+    mode: 0600
+  when: krb5_kdc_type == 'Active Directory'
+  notify: restart sssd
+
+- name: Start and enable sssd
+  service:
+    name: sssd
+    state: started
+    enabled: yes
+
+- name: Start and enable oddjobd
+  service:
+    name: oddjobd
+    state: started
+    enabled: yes
+
+# Restart sssd if needed before check groups and users
+- meta: flush_handlers
+
+- block:
+    - name: Check groups
+      shell: "getent group {{ ldap_group_names | join(' ') }} | cut -d ':' -f 1"
+      changed_when: no
+      register: reg_check_groups
+
+    - name: Assert that groups are pulled from ldap to unix
+      assert:
+        that: item in reg_check_groups.stdout_lines
+        success_msg: "Group '{{ item }}' correctly pulled from ldap"
+        fail_msg: "Group '{{ item }}' not pulled from ldap"
+      loop: "{{ ldap_group_names }}"
+
+    - name: Check users
+      shell: "getent passwd {{ ldap_user_names | join(' ') }} | cut -d ':' -f 1"
+      changed_when: no
+      register: reg_check_users
+
+    - name: Assert that users are pulled from ldap to unix
+      assert:
+        that: item in reg_check_users.stdout_lines
+        success_msg: "User '{{ item }}' correctly pulled from ldap"
+        fail_msg: "User '{{ item }}' not pulled from ldap"
+      loop: "{{ ldap_user_names }}"
+  vars:
+    ldap_group_names: "{{ ldap_groups | map(attribute='group') | list }}"
+    ldap_user_names: "{{ ldap_users | map(attribute='user') | list }}"

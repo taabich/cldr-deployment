@@ -1,7 +1,0 @@
----
-
-
-tls_cmca_path: /tmp/cmca_dir
-tls_autotls_location: /opt/cloudera/AutoTLS
-
-

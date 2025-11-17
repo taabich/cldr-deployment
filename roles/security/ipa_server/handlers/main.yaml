@@ -1,0 +1,4 @@
+    - name: reload_firewalld
+      service:
+        name: firewalld
+        state: reloaded

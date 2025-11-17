@@ -1,0 +1,63 @@
+{% set service_dependencies = {
+
+    'HDFS': 'hdfs'
+  } 
+ %}
+{% comment %} 
+'RANGER': 'ranger', 
+{% endcomment %}
+{
+  "refName": "schemaregistry",
+  "serviceType": "SCHEMAREGISTRY",
+  "displayName": "SCHEMAREGISTRY",
+  "serviceConfigs": [
+    {
+      "name": "kerberos.auth.enable",
+      "value": "false"
+    },
+    {
+      "name": "enable.trusted.proxy",
+      "value": "false"
+    },
+    
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    { "name": "database_host", "value": "{{ databases.SCHEMAREGISTRY.host }}" },
+    { "name": "database_port", "value": "{{ databases.SCHEMAREGISTRY.port }}" },
+    { "name": "database_type", "value": "{{ databases.SCHEMAREGISTRY.type | format_database_type }}" },
+    { "name": "database_name", "value": "{{ databases.SCHEMAREGISTRY.name }}" },
+    { "name": "database_user", "value": "{{ databases.SCHEMAREGISTRY.user }}" },
+    { "name": "database_password", "value": "{{ databases.SCHEMAREGISTRY.password }}" }
+   
+  ],
+  "roleConfigGroups": [    
+      {
+      "refName": "schemaregistry-SCHEMA_REGISTRY_SERVER-BASE",
+      "roleType": "SCHEMA_REGISTRY_SERVER",
+      "configs": [
+         {
+          "name": "schema.registry.jar.storage.type",
+          "value": "hdfs"
+        },
+        {
+          "name": "SCHEMA_REGISTRY_SERVER_role_env_safety_valve",
+          "value": "RANGER_REST_URL=${ranger_rest_url},${ranger_rest_url},${ranger_rest_url}"
+        }
+      ],
+      "base": true
+    },
+     {
+      "refName": "schemaregistry-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }  
+  ]
+}
+
+

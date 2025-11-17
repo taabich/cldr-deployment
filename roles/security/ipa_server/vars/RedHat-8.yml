@@ -1,0 +1,10 @@
+# defaults file for ipaserver
+# vars/RedHat-8.yml
+---
+ipaserver_packages: ["python3-libselinux", "selinux-policy", "@idm:DL1/server" ]
+ipaserver_packages_dns: [ "@idm:DL1/dns" ]
+ipaserver_packages_adtrust: [ "@idm:DL1/adtrust" ]
+ipaserver_packages_firewalld: [ "firewalld" ]
+
+python_packages:
+  - python3

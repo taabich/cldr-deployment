@@ -1,0 +1,8 @@
+
+- name: Install Postgres Connector
+  hosts: ha_cluster
+  gather_facts: yes
+  become: yes
+  tasks:
+  - debug:
+     var: ansible_fqdn

@@ -1,0 +1,156 @@
+{% set service_dependencies = {
+  'ZOOKEEPER': 'zookeeper',
+  'RANGER_KMS': 'kms'
+} %}
+
+{
+  "refName": "hdfs",
+  "serviceType": "HDFS",
+  "displayName": "HDFS",
+  "serviceConfigs": [
+    {
+      "name": "dfs_permissions_supergroup",
+      "value": "{{ hdfs_supergroup }}"
+    },
+    {
+      "name": "dfs_namenode_acls_enabled",
+      "value": "true"
+    },
+    {
+      "name": "hadoop_security_authorization",
+      "value": "true"
+    }, 
+    {
+      "name": "dfs_ha_fencing_methods",
+      "value": "shell(true)"
+    }, 
+    {
+      "name": "hadoop_secure_web_ui",
+      "value": "false"
+    }, 
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc|lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    {
+      "name": "core_site_safety_valve",
+      "value": "<property><name>hadoop.proxyuser.zeppelin.hosts</name><value>*</value></property><property><name>hadoop.proxyuser.zeppelin.groups</name><value>*</value></property><property><name>dfs.namenode.kerberos.principal.pattern</name><value>*</value></property>"
+    }
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "hdfs-FAILOVERCONTROLLER-BASE",
+      "roleType": "FAILOVERCONTROLLER",
+      "configs": [],
+      "base": true
+    }, 
+    {
+      "refName": "hdfs-DATANODE-BASE",
+      "roleType": "DATANODE",
+      "configs": [
+        {
+          "name": "dfs_data_dir_list",
+          "value": "{{ dfs_data_dir_list }}"
+        },
+        {
+          "name": "datanode_java_heapsize",
+          "value": "{{ datanode_java_heapsize | default('4294967296') }}"
+        }
+        {% if enable_port %}
+         , {
+          "name": "dfs_datanode_port",
+          "value": "1004"
+        }, {
+          "name": "dfs_datanode_http_port",
+          "value": "1006"
+        }
+        {% endif %}
+      ],
+      "base": true
+    }, {
+      "refName": "hdfs-SECONDARYNAMENODE-BASE",
+      "roleType": "SECONDARYNAMENODE",
+      "configs": [
+        {
+          "name": "fs_checkpoint_dir_list",
+          "value": "{{ fs_checkpoint_dir_list }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hdfs-NAMENODE-BASE",
+      "roleType": "NAMENODE",
+      "configs": [
+        {% if ( ha_enabled ) %}   
+        {
+          "name": "dfs_federation_namenode_nameservice",
+          "value": "ns{{ cluster_name }}"
+        },
+        {
+          "name": "namenode_java_heapsize",
+          "value": "{{ namenode_java_heapsize | default('8589934592') }}"
+        },
+        {
+          "name": "dfs_namenode_quorum_journal_name",
+          "value": "ns{{ cluster_name }}"
+        },
+        {
+          "name": "autofailover_enabled",
+          "value": "true"
+        }
+        ,
+        {% endif %}
+        {
+          "name": "dfs_name_dir_list",
+          "value": "{{ dfs_name_dir_list }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hdfs-JOURNALNODE-BASE",
+      "roleType": "JOURNALNODE",
+      "configs": [
+        {
+          "name": "dfs_journalnode_edits_dir",
+          "value": "{{ dfs_journalnode_edits_dir }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hdfs-HTTPFS-BASE",
+      "roleType": "HTTPFS",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hdfs-NFSGATEWAY-BASE",
+      "roleType": "NFSGATEWAY",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hdfs-BALANCER-BASE",
+      "roleType": "BALANCER",
+      "configs": [
+        {
+          "name": "balancer_java_heapsize",
+          "value": "{{ balancer_java_heapsize | default('1073741824') }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hdfs-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [
+        {
+          "name": "dfs_client_use_trash",
+          "value": "true"
+        }
+      ],
+      "base": true
+    }
+  ]
+  
+}

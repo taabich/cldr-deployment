@@ -1,0 +1,12 @@
+
+- name:  hostnamectl set-hostname
+  hosts: ha_cluster
+  gather_facts: yes
+  become: yes
+  tasks:
+  - name: Run  hostnamectl set-hostname
+    debug:
+      msg: hostnamectl set-hostname {{ansible_fqdn}}
+  - name: Run  hostnamectl set-hostname
+    ansible.builtin.command:
+       cmd: hostnamectl set-hostname {{ansible_fqdn}}

@@ -1,0 +1,98 @@
+{% set service_dependencies = {
+  'HBASE': 'hbase',
+  'HIVE': 'hive',
+  'KUDU': 'kudu',
+  'RANGER': 'ranger',
+  'ZOOKEEPER': 'zookeeper',
+  'ATLAS': 'atlas'
+} %}
+
+
+{
+  "refName": "impala",
+  "serviceType": "IMPALA",
+  "displayName": "IMPALA",
+  "serviceConfigs": [
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+      {
+        "name": "{{ ref }}_service",
+        "ref": "{{ ref }}"
+      }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,{
+      "name": "impala_cmd_args_safety_valve",
+      "value": ""
+    }
+    ,
+    {
+      "name": "all_admission_control_enabled",
+      "value": "true"
+    },
+    {
+      "name": "impala_cmd_args_safety_valve",
+      "value": "--enable_orc_scanner=true"
+    },
+    {
+      "name": "ranger_plugin_urlauth_filesystem_schemes",
+      "value": "file:,wasb:,adl:"
+    },
+    {
+      "name": "yarn_service",
+      "value": "none"
+    }
+     
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "impala-IMPALAD-BASE",
+      "roleType": "IMPALAD",
+      "configs": [
+        {
+          "name": "enable_audit_event_log",
+          "value": "true"
+        },
+        {
+        "name": "scratch_dirs",
+        "value": "{{ scratch_dirs }}"
+        }, 
+        {
+          "name": "impalad_embedded_jvm_heapsize",
+          "value": "{{ impalad_embedded_jvm_heapsize | default('4294967296') }}"
+        },
+        {
+          "name": "impalad_memory_limit",
+          "value": "{{ impalad_memory_limit | default('34359738368') }}"
+        },
+        {
+          "name": "logbuflevel",
+          "value": "-1"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "impala-CATALOGSERVER-BASE",
+      "roleType": "CATALOGSERVER",
+      "configs": [
+        {
+          "name": "logbuflevel",
+          "value": "-1"
+        },
+        {
+          "name": "catalogd_embedded_jvm_heapsize",
+          "value": "{{ catalogd_embedded_jvm_heapsize | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "impala-STATESTORE-BASE",
+      "roleType": "STATESTORE",
+      "configs": [
+        {
+          "name": "logbuflevel",
+          "value": "-1"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

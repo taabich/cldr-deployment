@@ -1,0 +1,42 @@
+
+{% set service_dependencies = {
+  'YARN': 'yarn',
+  'HBASE': 'hbase',
+  'ATLAS': 'atlas',
+  'KNOX': "knox"
+} %}
+{
+  "refName": "spark3_on_yarn",
+  "serviceType": "SPARK3_ON_YARN",
+  "displayName": "SPARK3_ON_YARN",
+  "serviceConfigs": [
+
+   {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "spark3_on_yarn-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "base": true
+    }, {
+      "refName": "spark3_on_yarn-SPARK3_YARN_HISTORY_SERVER-BASE",
+      "roleType": "SPARK3_YARN_HISTORY_SERVER",
+      "configs": [
+        {
+          "name": "history_server_spnego_enabled",
+          "value": "false"
+        },
+         {
+          "name": "history_server_max_heapsize",
+          "value": "{{ history_server_max_heapsize | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

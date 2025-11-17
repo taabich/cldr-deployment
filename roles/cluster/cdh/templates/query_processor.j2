@@ -1,0 +1,40 @@
+{
+  "refName": "query_processor",
+  "serviceType": "QUERY_PROCESSOR",
+  "displayName": "QUERY_PROCESSOR",
+  "serviceConfigs": [
+      {
+        "name": "query_processor_database_host",
+        "value": "{{ databases.QUERY_PROCESSOR.host }}"
+      },
+      {
+        "name": "query_processor_database_port",
+        "value": "{{ databases.QUERY_PROCESSOR.port }}"
+      },
+      {
+        "name": "query_processor_database_type",
+        "value": "PostgreSQL"
+      },
+      {
+        "name": "query_processor_database_name",
+        "value": "{{ databases.QUERY_PROCESSOR.name }}"
+      },
+      {
+        "name": "query_processor_database_user",
+        "value": "{{ databases.QUERY_PROCESSOR.user }}"
+      },
+      {
+        "name": "query_processor_database_password",
+        "value": "{{ databases.QUERY_PROCESSOR.password }}"
+      }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "query_processor-QUERY_PROCESSOR-BASE",
+      "roleType": "QUERY_PROCESSOR",
+      "configs": [
+      ],
+      "base": true
+    }
+  ]
+}

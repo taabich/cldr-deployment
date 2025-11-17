@@ -1,0 +1,2 @@
+cloudera_parcel_repo: /opt/cloudera/parcel-repo
+os_pattern: "{{ ansible_distribution_major_version | regex_replace('^', 'el') }}"

@@ -1,0 +1,17 @@
+
+
+- hosts: cluster
+  become: true
+  gather_facts: true
+  vars: 
+    
+  tasks:
+   - name: Generate csr
+     ansible.builtin.import_role:
+        name: security/tls_gen_csr
+   - name: Self sign
+     ansible.builtin.import_role:
+        name: security/tls_selfsign
+   - name: Deploy JKS
+     ansible.builtin.import_role:
+        name: security/tls_gen_jks

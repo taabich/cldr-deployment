@@ -1,0 +1,57 @@
+
+- name: Wait master server installed
+  shell: echo '{{ipaadmin_password}}' | kinit admin@{{ipaserver_realm|upper|upper}} ; ipa host-find "{{ groups['ipaserver'] | first }}"
+  register: wait_master
+  until: wait_master.rc == 0
+  delegate_to: "{{ groups['ipaserver'] | first }}"
+  retries: 10
+  delay: 10
+
+- name: Wait master server started
+  shell: /bin/bash -c 'echo > /dev/tcp/{{ groups['ipaserver'] | first }}/443'
+  register: wait_master_started
+  until: wait_master_started.rc == 0
+  retries:  10
+  delay: 10
+
+- name: Check replica not setup
+  shell: ipa host-find "{{ inventory_hostname }} "
+  register: replica_exist
+  delegate_to: "{{ groups['ipaserver'] | first }}"
+  ignore_errors: True
+  
+- name: "Enroll ipa server replica"
+  shell: >
+    ipa host-add {{ inventory_hostname }} --random --ip-address {{ansible_ssh_host}} | grep 'Random password'
+  delegate_to: "{{ groups['ipaserver'] | first }}"
+  register: enrolled
+  when: replica_exist.rc == 1
+
+- name: Set fact
+  set_fact:
+     password: "{{ enrolled.stdout | trim | regex_replace('Random password:', '') | trim}}"
+  when: replica_exist.rc == 1
+
+- name: DEBUG
+  debug:
+    msg: "PASSWORD is ->{{password}}<-"
+  when: replica_exist.rc == 1
+
+- name: Set group ipaservers
+  shell: >
+    ipa hostgroup-add-member ipaservers --hosts "{{ inventory_hostname }}"
+  delegate_to: "{{groups['ipaserver'] | first}}"
+  when: replica_exist.rc == 1
+
+- name: Add replica
+  shell: >
+    ipa-replica-install -p '{{password}}' --server "{{groups['ipaserver'] | first}}" --domain "{{ ipaserver_domain }}"  \ 
+    --realm "{{ipaserver_realm|upper}}" \
+    {% if ipaserver_setup_dns is defined and ipaserver_setup_dns %} \
+    --setup-dns {% endif %} {% if ipaserver_no_forwarders is defined %} \
+    --no-forwarders {% endif %} {% if ipaserver_auto_reverse is defined %} \
+    --auto-reverse  {% endif %}{% if ipaserver_forwarders %} --auto-forwarders {% endif %}
+  when: replica_exist.rc == 1
+
+   
+    

@@ -1,0 +1,65 @@
+{% set service_dependencies = {
+
+  'HDFS': 'hdfs',
+  'HIVE': 'hms'
+} %}
+
+{
+  "refName": "kudu",
+  "serviceType": "KUDU",
+  "displayName": "KUDU",
+  "serviceConfigs": [
+    {
+      "name": "time_source",
+      "value": "{{ kudu_time_source | default('builtin') }}"
+    },
+    {
+      "name": "enable_security",
+      "value": "false"
+    },
+    {
+      "name": "builtin_ntp_servers",
+      "value": "{{ kudu_builtin_ntp_servers | default('pool.ntp.org') }}"
+    },
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+  ],
+
+  "roleConfigGroups": [
+    {
+      "refName": "kudu-KUDU_MASTER-BASE",
+      "roleType": "KUDU_MASTER",
+      "configs": [
+        {
+          "name": "fs_wal_dir",
+          "value": "{{ kudu_master_fs_wal_dir | default('/kudu/wal') }}"
+        },
+        {
+          "name": "fs_data_dirs",
+          "value": "{{ kudu_master_fs_data_dirs | default('/kudu/data') }}"
+        }
+      ],
+      "base": true
+    },
+    {
+      "refName": "kudu-KUDU_TSERVER-BASE",
+      "roleType": "KUDU_TSERVER",
+      "configs": [
+        {
+          "name": "fs_wal_dir",
+          "value": "{{ kudu_tserver_fs_wal_dir | default('/kudu/wal') }}"
+        },
+        {
+          "name": "fs_data_dirs",
+          "value": "{{ kudu_tserver_fs_data_dirs | default('/kudu/data') }}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

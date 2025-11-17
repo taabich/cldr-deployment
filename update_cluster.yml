@@ -1,0 +1,10 @@
+
+- name: update cluster
+  hosts: cloudera_manager          # corrige "cloudera_amanger" → adapte si ton groupe a un autre nom
+  gather_facts: yes
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/service_config.yml"   # corrige "innventory_dir" + ajoute l’espace avant la }`
+    - "{{ inventory_dir }}/group_vars/krb5_server.yaml" 
+  roles:
+    - role: cluster/update           # syntaxe correcte pour appeler un rôle

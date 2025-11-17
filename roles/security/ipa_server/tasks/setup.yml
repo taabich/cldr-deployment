@@ -1,0 +1,44 @@
+
+
+
+
+
+- name: Install and configure FreeIPA server
+  command: >
+    ipa-server-install -U
+    --realm={{ ipaserver_realm }}
+    --domain={{ ipaserver_domain }}
+    --ds-password={{ ipadm_password }}
+    --admin-password={{ ipaadmin_password }}
+    --hostname={{ ansible_fqdn }}
+    {% if ipaserver_setup_dns is defined and ipaserver_setup_dns|bool%} --setup-dns --no-reverse --no-forwarders  {% endif %} 
+  args:
+    creates: /etc/ipa/default.conf
+  async: 1000
+  poll: 0  # This ensures that Ansible waits for the command to complete
+  register: ipa_install
+
+
+
+
+- name: Wait for asynchronous job to end
+  ansible.builtin.async_status:
+    jid: '{{ ipa_install.ansible_job_id }}'
+  register: job_result
+  until: job_result.finished
+  retries: 100
+  delay: 10
+
+- name: Clean up async file
+  ansible.builtin.async_status:
+    jid: '{{ ipa_install.ansible_job_id }}'
+    mode: cleanup
+
+
+- name: Restart IPA service
+  service:
+    name: ipa
+    state: restarted
+  notify: reload_firewalld
+
+

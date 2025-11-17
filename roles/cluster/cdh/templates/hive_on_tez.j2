@@ -1,0 +1,53 @@
+{% set service_dependencies = {
+  'YARN': 'mapreduce_yarn',
+  'RANGER': 'ranger',
+  'ZOOKEEPER': 'zookeeper',
+  'TEZ': 'tez',
+  'HBASE': 'hbase',
+  'ATLAS': 'atlas'
+} %}
+
+{
+  "refName": "hive_on_tez",
+  "serviceType": "HIVE_ON_TEZ",
+  "displayName": "HIVE_ON_TEZ",
+  "serviceConfigs": [
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc|lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    {
+      "name": "ranger_plugin_urlauth_filesystem_schemes",
+      "value": "file:,wasb:,adl:"
+    },
+    {
+      "name": "hive_service_config_safety_valve",
+      "value": "<property><name>hive.conf.restricted.list</name><value>hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled,hive.distcp.privileged.doAs,hive.privilege.synchronizer.interval,hive.spark.client.connect.timeout,hive.spark.client.server.connect.timeout,hive.spark.client.channel.log.level,hive.spark.client.rpc.max.size,hive.spark.client.rpc.threads,hive.spark.client.secret.bits,hive.spark.client.rpc.server.address,hive.spark.client.rpc.server.port,hive.spark.client.rpc.sasl.mechanisms,bonecp.,hive.druid.broker.address.default,hive.druid.coordinator.address.default,hikaricp.,hadoop.bin.path,yarn.bin.path,spark.home,hive.driver.parallel.compilation.global.limit,_hive.local.session.path,_hive.hdfs.session.path,_hive.tmp_table_space,_hive.local.session.path,_hive.hdfs.session.path,_hive.tmp_table_space,_hive.local.session.path,_hive.hdfs.session.path,_hive.tmp_table_space,_hive.local.session.path,_hive.hdfs.session.path,_hive.tmp_table_space,mapreduce.job.queuename,mapred.job.queue.name</value></property>"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "hive_on_tez-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hive_on_tez-HIVESERVER2-BASE",
+      "roleType": "HIVESERVER2",
+      "configs": [
+        {
+          "name": "hiveserver2_java_heapsize",
+          "value": "{{ hiveserver2_java_heapsize | default('4294967296') }}"
+        },
+        {
+          "name": "hiveserver2_exec_scratchdir",
+          "value": "{{hiveserver2_exec_scratchdir}}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

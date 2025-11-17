@@ -1,0 +1,32 @@
+[sssd]
+services = nss, pam
+config_file_version = 2
+domains = {{ krb5_realm }}
+
+[nss]
+homedir_substring = /home
+
+[pam]
+pam_verbosity = 1
+pam_id_timeout = 10
+pam_mkhomedir = True
+
+[domain/{{ krb5_realm }}]
+id_provider = ad
+auth_provider = ad
+chpass_provider = ad
+krb5_realm = {{ krb5_realm|upper }}
+
+# Afin d’éviter la découverte SRV, précisez directement le DC :
+ad_server = {{krb5_kdc_host}}
+
+# Si vous n’utilisez pas le chiffrement LDAP (LDAPS), commentez ldap_uri
+#ldap_uri = ldap://{{krb5_kdc_host}}
+
+# Si vous souhaitez absolument utiliser LDAPS, spécifiez :
+#ldap_uri = ldaps://{{krb5_kdc_host}}
+
+cache_credentials = True
+enumerate = False
+override_homedir = /home/%u@{{ krb5_realm|upper }}
+default_shell = /bin/bash

@@ -1,0 +1,21 @@
+---
+- name: Install Cloudera Manager Agents
+  yum:
+    name:
+    - cloudera-manager-daemons
+    - cloudera-manager-agent
+    update_cache: yes
+    state: present
+
+- name: Configure Cloudera Manager Agent 'server_host'
+  lineinfile:
+    dest: /etc/cloudera-scm-agent/config.ini
+    regexp: "^server_host"
+    line: 'server_host={{ groups["cloudera_manager"][0] }}'
+
+- name: Restart Cloudera Manager Agents
+  service:
+    name: cloudera-scm-agent
+    state: restarted
+    enabled: yes
+

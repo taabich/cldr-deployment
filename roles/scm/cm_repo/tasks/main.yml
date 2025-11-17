@@ -1,0 +1,25 @@
+---
+
+
+- name: Include variables
+  include_vars:
+    file: "{{ ansible_os_family }}.yml"
+
+- name: Define Cloudera Manager repository key URL
+  set_fact:
+    cloudera_manager_repo_key: "{{ cloudera_manager_repo_url | regex_replace('/?$','') }}/{{ __cloudera_manager_repo_key_filename }}"
+  when: cloudera_manager_repo_key is not defined
+
+- name: Add Cloudera Manager yum repository
+  ansible.builtin.yum_repository:
+    name: cloudera-manager
+    description: Cloudera Manager
+    baseurl: "{{ cloudera_manager_repo_url }}"
+    gpgkey: "{{ cloudera_manager_repo_key }}"
+    gpgcheck: "{{ cloudera_manager_repo_gpgcheck | default((cloudera_manager_version.split('.')[0] == '5' ) | ternary('no', 'yes')) }}"
+    enabled: yes
+    username: "{{ cloudera_manager_repo_username | default('') }}"
+    password: "{{ cloudera_manager_repo_password | default('') }}"
+
+- name: yum-clean-metadata
+  ansible.builtin.command: yum clean metadata

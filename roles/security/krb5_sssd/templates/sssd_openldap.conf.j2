@@ -1,0 +1,44 @@
+[sssd]
+services = nss, pam
+config_file_version = 2
+domains = {{ krb5_realm|upper }}
+private_keyring = False
+
+[nss]
+homedir_substring = /home
+
+[pam]
+pam_verbosity = 1
+pam_id_timeout = 10
+pam_mkhomedir = True
+
+[domain/{{ krb5_realm|upper }}]
+id_provider = ldap
+auth_provider = krb5
+chpass_provider = krb5
+
+ldap_uri = ldap://{{ ldap_server }}
+# Base DN pour les utilisateurs/groupes
+ldap_search_base = {{ ldap_suffix }}
+# Bind DN si nécessaire, sinon utilisez anonymous_bind = True
+
+ldap_user_search_base = ou=users,{{ ldap_suffix }}
+ldap_group_search_base = ou=groups,{{ ldap_suffix }}
+#ldap_default_bind_dn = {{ ldap_admin_dn }}
+#ldap_default_authtok = {{ ldap_admin_dn_password }}
+#ldap_default_authtok_type = password
+
+ldap_tls_reqcert = allow
+ldap_id_use_start_tls = False
+
+krb5_realm = {{ krb5_realm|upper }}
+krb5_server = {{ kdc_host }}
+krb5_kpasswd = {{ kdc_host}}
+
+cache_credentials = True
+enumerate = True
+override_homedir = /home/%u
+default_shell = /bin/bash
+
+ldap_user_uid_number = uidNumber
+ldap_user_gid_number = gidNumber

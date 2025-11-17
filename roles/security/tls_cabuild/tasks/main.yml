@@ -1,0 +1,165 @@
+---
+# =======================
+# Vars utilitaires
+# =======================
+- set_fact:
+    openssl_bin: "{{ (openssl_path | default('/usr/bin')) | regex_replace('/+$','') ~ '/openssl' }}"
+    ca_dirs_all:
+      - "{{ ca_server_root_path }}"
+      - "{{ ca_server_root_path_certs }}"
+      - "{{ ca_server_root_path_crl }}"
+      - "{{ ca_server_root_path_newcerts }}"
+      - "{{ ca_server_root_path_private }}"
+      - "{{ ca_server_intermediate_path }}"
+      - "{{ ca_server_intermediate_path_certs }}"
+      - "{{ ca_server_intermediate_path_crl }}"
+      - "{{ ca_server_intermediate_path_csr }}"
+      - "{{ ca_server_intermediate_path_newcerts }}"
+      - "{{ ca_server_intermediate_path_private }}"
+    index_files:
+      - "{{ ca_server_root_path }}/index.txt"
+      - "{{ ca_server_intermediate_path }}/index.txt"
+    serial_files:
+      - "{{ ca_server_root_path }}/serial"
+      - "{{ ca_server_intermediate_path }}/serial"
+
+# =======================
+# Répertoires & fichiers de base
+# =======================
+- name: Ensure CA directories (root + intermediate)
+  ansible.builtin.file:
+    state: directory
+    path: "{{ item }}"
+    mode: "{{ '0700' if item | regex_search('/private$') else '0755' }}"
+    owner: root
+  loop: "{{ ca_dirs_all }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Ensure index.txt files
+  ansible.builtin.file:
+    state: touch
+    path: "{{ item }}"
+    mode: "0600"
+    owner: root
+  loop: "{{ index_files }}"
+  changed_when: false
+
+# Pas de `shell: echo ...` ; on crée le fichier serial avec copy (idempotent, rapide)
+- name: Seed serial files (1000) if missing
+  ansible.builtin.copy:
+    dest: "{{ item }}"
+    content: "1000\n"
+    owner: root
+    mode: "0600"
+    force: false              # ne pas écraser s'il existe déjà
+  loop: "{{ serial_files }}"
+
+# =======================
+# Config OpenSSL (templates)
+# =======================
+- name: Install root CA openssl.cnf
+  ansible.builtin.template:
+    src: root.openssl.cnf.j2
+    dest: "{{ ca_server_root_path }}/openssl.cnf"
+    mode: "0644"
+
+- name: Install intermediate CA openssl.cnf
+  ansible.builtin.template:
+    src: intermediate.openssl.cnf.j2
+    dest: "{{ ca_server_intermediate_path }}/openssl.cnf"
+    mode: "0644"
+
+# =======================
+# Clés privées (modules crypto)
+# =======================
+- name: Generate root private key (fast, idempotent)
+  community.crypto.openssl_privatekey:
+    path: "{{ ca_server_root_path_private }}/{{ ca_server_root_key_name }}"
+    type: RSA
+    size: "{{ ca_server_root_key_size | default(4096) }}"
+    cipher: "{{ ca_server_root_key_cipher | default('auto') }}"
+    passphrase: "{{ ca_server_root_key_password }}"
+    mode: "0400"
+  no_log: true
+
+- name: Generate intermediate private key (fast, idempotent)
+  community.crypto.openssl_privatekey:
+    path: "{{ ca_server_intermediate_path_private }}/intermediate.key.pem"
+    type: RSA
+    size: 4096
+    cipher: "{{ ca_server_root_key_cipher | default('auto') }}"
+    passphrase: "{{ ca_server_intermediate_key_password }}"
+    mode: "0400"
+  no_log: true
+
+# =======================
+# Subjects non-interactifs (évite prompts)
+# =======================
+- name: Build DN subjects once (non-interactive)
+  ansible.builtin.set_fact:
+    subject_root: >-
+      /{{ lookup('template', 'root_dn.j2') | from_yaml
+           | map('regex_replace','/','\/') | join('/') }}
+    subject_intermediate: >-
+      /{{ lookup('template', 'intermediate_dn.j2') | from_yaml
+           | map('regex_replace','/','\/') | join('/') }}
+
+# =======================
+# Certificat Root (self-signed)
+# =======================
+- name: Create Root CA self-signed cert (non-interactive)
+  ansible.builtin.command: >
+    {{ openssl_bin }} req
+    -config "{{ ca_server_root_path }}/openssl.cnf"
+    -new
+    -key "{{ ca_server_root_path_private }}/{{ ca_server_root_key_name }}"
+    -x509
+    -days "{{ ca_root_days | default(3650) }}"
+    -sha256
+    -extensions v3_ca
+    -out "{{ ca_server_root_path_certs }}/{{ ca_server_root_cert_name }}"
+    -passin pass:{{ ca_server_root_key_password }}
+    -subj "{{ subject_root }}"
+  args:
+    creates: "{{ ca_server_root_path_certs }}/{{ ca_server_root_cert_name }}"
+  no_log: true
+
+# =======================
+# CSR Intermédiaire + Signature par la Root
+# =======================
+- name: Create Intermediate CSR (non-interactive)
+  ansible.builtin.command: >
+    {{ openssl_bin }} req
+    -config "{{ ca_server_intermediate_path }}/openssl.cnf"
+    -new -sha256
+    -key "{{ ca_server_intermediate_path_private }}/intermediate.key.pem"
+    -out "{{ ca_server_intermediate_path_csr }}/intermediate.csr.pem"
+    -passin pass:{{ ca_server_intermediate_key_password }}
+    -subj "{{ subject_intermediate }}"
+  args:
+    creates: "{{ ca_server_intermediate_path_csr }}/intermediate.csr.pem"
+  no_log: true
+
+- name: Sign Intermediate with Root CA
+  ansible.builtin.command: >
+    {{ openssl_bin }} ca
+    -batch
+    -config "{{ ca_server_root_path }}/openssl.cnf"
+    -extensions v3_intermediate_ca
+    -days "{{ ca_intermediate_days | default(3650) }}"
+    -notext
+    -md sha256
+    -in "{{ ca_server_intermediate_path_csr }}/intermediate.csr.pem"
+    -out "{{ ca_server_intermediate_path_certs }}/{{ ca_server_intermediate_cert_name }}"
+    -passin pass:{{ ca_server_root_key_password }}
+  args:
+    creates: "{{ ca_server_intermediate_path_certs }}/{{ ca_server_intermediate_cert_name }}"
+  no_log: true
+
+  
+- name: Generate certificate chain file
+  ansible.builtin.shell: |
+    cat {{ ca_server_root_path_certs }}/{{ ca_server_root_cert_name }} {{ ca_server_intermediate_path_certs }}/{{ ca_server_intermediate_cert_name }}  > {{ tls_chain_path }}
+  args:
+    creates: "{{ tls_chain_path }}"

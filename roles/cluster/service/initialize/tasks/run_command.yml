@@ -1,0 +1,33 @@
+
+
+
+
+- name: Check if service  exists
+  set_fact:
+    service_exists: >-
+      {{
+        services_installed.json.items | selectattr('type', 'equalto', '{{service_name}}') | list | length > 0
+      }}
+
+
+
+- name: /clusters/{{ cluster_name | urlencode() }}/services/{{service_name}}/commands/{{service_command}}
+  cm_api:
+    endpoint: /clusters/{{ cluster_name | urlencode() }}/services/{{service_name}}/{{service_command}}
+    method: POST
+    status_code: 200
+    headers:
+      accept: application/json
+      Content-Type: application/json
+  register: tls_response
+  ignore_errors: yes
+  when: service_exists is defined and service_exists
+
+- name: Show only the JSON response (ignore headers)
+  debug:
+    msg: "{{ tls_response }}"
+    verbosity: 3
+
+
+
+

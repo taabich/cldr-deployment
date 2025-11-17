@@ -1,0 +1,33 @@
+{
+  "refName": "zookeeper",
+  "serviceType": "ZOOKEEPER",
+  "displayName": "ZOOKEEPER",
+  "serviceConfigs": [
+    {
+      "name": "zookeeper_datadir_autocreate",
+      "value": "true"
+    },
+    {
+      "name": "enableSecurity",
+      "value": "false"
+    }
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "zookeeper-SERVER-BASE",
+      "roleType": "SERVER",
+      "configs": [
+      {
+        "name" : "dataDir",
+        "value" : "{{ zk_datadir}}"
+      },
+      {
+        "name" : "dataLogDir",
+        "value" : "{{ zk_logdir}}"
+      }
+      ],
+      "base": true
+    }
+  ]
+}

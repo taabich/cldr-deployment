@@ -1,0 +1,15 @@
+# defaults file for ipaserver
+# vars/RedHat-8.yml
+---
+
+ipaserver_packages_dns: [ "ipa-server-dns","bind-dyndb-ldap" ]
+ipaserver_packages_adtrust: [ "ipa-server-trust-ad" ]
+ipaserver_packages_firewalld: [ "firewalld" ]
+
+
+python_packages:
+  - python3
+ipaserver_packages:
+      - freeipa-server
+      - freeipa-client
+

@@ -1,0 +1,8 @@
+
+- hosts: cluster
+  become: yes
+  tasks:
+  - name: Restart agent cloudera-scm-agent
+    service:
+      name: cloudera-scm-agent
+      state: stopped

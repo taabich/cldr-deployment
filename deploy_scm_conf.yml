@@ -1,0 +1,5 @@
+- name: Install Cloudera Manager Server 
+  hosts: cloudera_manager
+  become: true
+  roles:
+  - role: scm/scm_config

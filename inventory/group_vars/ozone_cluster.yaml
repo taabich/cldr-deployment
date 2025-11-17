@@ -1,0 +1,88 @@
+
+
+
+fs_defaultfs: "ofs://{{ cluster_name }}"
+cluster_name: ozonemta                    # Name of the CDP cluster
+
+cldr_versions:
+  cm:
+    version: "7.13.1.500"
+    os: "redhat9"
+  cdh:
+    version: "7.3.1.500"
+    parcel: "CDH-7.3.1-1.cdh7.3.1.p500.71942734-el9.parcel"
+  # spark3:
+  #   version: "3.3.7191000.9"
+  #   parcel: "SPARK3-3.3.2.3.3.7191000.9-2-1.p0.65266237-el9.parcel"
+  # cfm:
+  #   version: "2.1.7.2000-69"
+  #   parcel: "CFM-2.1.7.2000-69-el9.parcel"
+  #   csds:
+  #     - "NIFIREGISTRY-1.28.1.2.1.7.2000-69.jar"
+  #     - "NIFI-1.28.1.2.1.7.2000-69.jar"
+  # csa:
+  #   version: "1.15.2.0"
+  #   flink_jar: "FLINK-1.20.1-csa1.15.2.0-67992430.jar"
+  #   ssb_jar:   "SQL_STREAM_BUILDER-1.20.1-csa1.15.2.0-67992430.jar"
+  #   flink_parcel: "FLINK-1.20.1-csa1.15.2.0-67992430-el9.parcel"
+
+clusters:
+  - name: "{{ cluster_name }}"
+    type: base
+    host_templates:
+      Master1:
+        INFR_SOLR: [SOLR_SERVER]
+        OZONE: [ OZONE_MANAGER, STORAGE_CONTAINER_MANAGER, GATEWAY]
+        YARN: [RESOURCEMANAGER, GATEWAY]
+        ZOOKEEPER: [SERVER]  
+        STUB_DFS: [GATEWAY]  
+        TEZ: [GATEWAY]
+        HIVE: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+
+
+      Master3:
+        INFRA_SOLR: [SOLR_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER, GATEWAY]
+        YARN: [JOBHISTORY, GATEWAY]
+        ZOOKEEPER: [SERVER]    
+        STUB_DFS: [GATEWAY] 
+        TEZ: [GATEWAY] 
+        HIVE: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+        
+      Worker:
+        OZONE: [OZONE_DATANODE, GATEWAY]
+        YARN: [NODEMANAGER, GATEWAY]
+        STUB_DFS: [GATEWAY]  
+        TEZ: [GATEWAY]
+        HIVE: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+      
+      Utility1:
+        HIVE: [HIVEMETASTORE]
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_RMS: [RANGER_RMS_SERVER]       
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        STUB_DFS: [STORAGEOPERATIONS,GATEWAY]  
+        ICEBERG_REPLICATION: [ICEBERG_REPLICATION_ADMINSERVER] 
+        
+
+      Utility2:
+        HIVE: [HIVEMETASTORE]
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        RANGER_RMS: [RANGER_RMS_SERVER] 
+        OZONE: [OZONE_PROMETHEUS, S3_GATEWAY, OZONE_RECON, GATEWAY]
+        STUB_DFS: [GATEWAY] 
+
+ #     Gateway:
+        HIVE_ON_TEZ: [HIVESERVER2]
+ #       OZONE: [S3_GATEWAY,GATEWAY]
+        KNOX: [KNOX_GATEWAY]                       # Knox #1 (HA)
+        YARN: [GATEWAY]
+        TEZ: [GATEWAY]
+  #      STUB_DFS: [GATEWAY] 
+        
+
+

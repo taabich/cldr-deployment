@@ -1,0 +1,117 @@
+# Cluster configuration
+# Basic cluster metadata
+admin_user: admin                          # Cloudera Manager admin user
+admin_password: Secure123!                 # All services
+cloudera_manager_admin_password: "{{ admin_password }}"
+# Java setup
+java_version: openjdk-17-jdk               # Java version to be installed/used
+
+# Networking
+ecs_enabled: yes                            #  ECS installation
+# Database backend
+database_type: 'postgresql'                # Supported: postgresql, mysql, oracle
+database_password: "{{ admin_password }}"
+# Kerberos configuration
+
+#krb5_kdc_active_directory_suffix: ou=cldr,dc=mta,dc=local
+# FreeIPA or IPA server domain
+#52.71.247.117,52.0.42.208, 98.95.196.60
+
+database_install: yes
+
+
+entreprise_dir: "{{ inventory_dir}}/../entreprise"
+ansible_ssh_private_key_file: "{{entreprise_dir}}/id_rsa"
+private_key_path:  "{{ ansible_ssh_private_key_file }}"
+
+# Licensing
+cloudera_manager_license_file: "{{entreprise_dir}}/license_cloudera.txt"  # License file path
+                                           # License type: trial or enterprise
+
+# Cloudera Manager connection details
+cloudera_manager_host: "{{ groups['cloudera_manager'][0] | default('localhost') }}"  # Host running CM
+#cloudera_manager_port: 7180                      # Port for Cloudera Manager HTTP API
+
+
+# Host where the Cloudera local repository is hosted (usually running Apache httpd)
+repo_host: "{{ groups['httpd_repo'][0] | default('localhost') }}"
+
+cloudera_runtime_version: "{{ cldr_versions.cdh.version }}"                 # CDP Runtime version to deploy
+cloudera_manager_version: "{{ cldr_versions.cm.version }}"                  # Cloudera Manager version
+
+
+httpd_port: 9090
+# Base URL to access Cloudera archive hosted locally
+
+cloudera_archive_base_url: http://{{repo_host}}:{{httpd_port}}/cloudera-repos
+enabled_services: "{{ clusters | map(attribute='host_templates') | map('dict2items') | map('map', attribute='value') | flatten | map('dict2items') | map('map', attribute='key') | flatten | unique }}"
+#enable_spark3: "{{ 'SPARK3_ON_YARN' in (enabled_services | default([])) }}"
+#enable_cfm:    "{{ 'NIFI' in (enabled_services | default([])) or 'NIFIREGISTRY' in (enabled_services | default([])) }}"
+#enable_csa:    "{{ 'SQL_STREAM_BUILDER' in (enabled_services | default([])) or 'FLINK' in (enabled_services | default([])) }}"
+
+enable_cfm: false
+enable_csa: false
+
+cloudera_manager_repo_url:  "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions.cm.version }}"
+
+
+############################
+## Disks configuration ##
+############################
+# Set list of worker_nodes disks
+
+kafka_disks:
+  - /data/01
+  - /data/02
+
+datanode_disks:
+  - /data/01
+  - /data/02
+namenode_disks:
+  - /data/nn1
+
+journalnode_disks: /data/jn
+
+
+
+#Determines where on the local filesystem HDDS data will be stored.
+
+ozone_om_disk:    /data/ozone/om
+ozone_scm_disk:   /data/ozone/scm
+ozone_recon_disk: /data/ozone/recon
+# Ratis metadata
+ozone_datanode_storage_disks: 
+  -  /data/ozone/dnstorage/data-01
+  -  /data/ozone/dnstorage/data-02
+
+ozone_datanode_disk: /data/ozone/dn
+
+
+
+
+solr_datadir: /data/solr
+infra_solr_datadir: /data/infrasolr
+
+nifi_flow_disk: /data/01
+nifi_provenance_disks:
+  - /data/01
+  - /data/02
+nifi_content_disks:
+  - /data/01
+  - /data/02
+
+zk_datadir: /data/zk
+zk_logdir: /data/zk
+
+checkpoint_disks: /data/nn1
+
+
+postgresql_data_dir: /data/rbdms
+
+#SSH KEY
+tls_workdir_localpath: /tmp/tls
+
+
+
+#52.86.152.254
+#host -t SRV _kerberos._tcp.cloudera.loca

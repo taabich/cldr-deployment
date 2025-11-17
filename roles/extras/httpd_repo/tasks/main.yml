@@ -1,0 +1,160 @@
+- name: install repository
+  include_tasks: install.yml
+
+- name: Derive License Content
+  when: cloudera_manager_license_file
+  block:
+    - name: Read in License File
+      no_log: true
+      ansible.builtin.set_fact:
+        cloudera_manager_license: "{{ lookup('file', cloudera_manager_license_file ) }}"
+
+    - name: Extract Username and License Name from Cloudera License Content
+      no_log: true
+      ansible.builtin.set_fact:
+        cloudera_manager_repo_username: "{{ cloudera_manager_license | regex_replace('(.|\n)*\"uuid\"\\s*:\\s*\"([^\"]*)\"(.|\n)*', '\\2') }}"
+
+    - name: Generate Cloudera Repo Password from License Content
+      shell: "printf '{{ ''.join([__licname, cloudera_manager_repo_username]) }}' | openssl dgst -sha256 -hex | egrep -o '[a-f0-9]{12}' | head -1"
+      register: __repo_pword
+      no_log: true
+      vars:
+        __licname: "{{ cloudera_manager_license | regex_replace('(.|\n)*\"name\"\\s*:\\s*\"([^\"]*)\"(.|\n)*', '\\2') }}"
+      check_mode: false
+
+    - name: Set password from processed Cloudera License Content
+      no_log: true
+      ansible.builtin.set_fact:
+        cloudera_manager_repo_password: "{{ __repo_pword.stdout }}"
+
+- name: Prepare directories
+  file:
+    path: "{{ item.dest }}"
+    state: directory
+    recurse: true
+    mode: '0755'
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ item.dest | basename }}"
+  tags: [parcel]
+
+- name: Download parcel
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}/{{ item.url | basename }}"
+    mode: "0644"
+    force: no
+    timeout: 60
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when:
+    - item.url is defined
+    - item.url | regex_search('\\.parcel$')
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ item.url | basename }}"
+  tags: [parcel]
+
+
+- name: Download jar
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}/{{ item.url | basename }}"
+    mode: "0644"
+    force: no
+    timeout: 60
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when:
+    - item.url is defined
+    - item.url | regex_search('\\.jar$')
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ item.url | basename }}"
+  tags: [jar]
+
+
+- name: Download parcel .sha1 (optional)
+  get_url:
+    url: "{{ item.url }}.sha1"
+    dest: "{{ item.dest }}/{{ (item.url | basename) }}.sha1"
+    mode: "0644"
+    force: no
+    timeout: 30
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when: item.sha1 | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ (item.url | basename) }}.sha1"
+  tags: [parcel_sha1]
+
+- name: Download parcel .sha (optional)
+  get_url:
+    url: "{{ item.url }}.sha"
+    dest: "{{ item.dest }}/{{ (item.url | basename) }}.sha1"
+    mode: "0644"
+    force: no
+    timeout: 30
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when: item.sha | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ (item.url | basename) }}.sha1"
+  tags: [parcel_sha1]
+
+- name: Download parcel .sha256 (optional)
+  get_url:
+    url: "{{ item.url }}.sha256"
+    dest: "{{ item.dest }}/{{ (item.url | basename) }}.sha256"
+    mode: "0644"
+    force: no
+    timeout: 30
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when: item.sha256 | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ (item.url | basename) }}.sha256"
+  tags: [parcel_sha256]
+
+- name: Download manifest.json (optional)
+  get_url:
+    url: "{{ item.url | regex_replace('/[^/]+$', '') }}/manifest.json"
+    dest: "{{ item.dest }}/manifest.json"
+    mode: "0644"
+    force: no
+    timeout: 30
+    url_username: "{{ cloudera_manager_repo_username }}"
+    url_password: "{{ cloudera_manager_repo_password }}"
+  when: item.manifest | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "manifest.json for {{ item.url | basename }}"
+  tags: [manifest]
+
+
+
+
+
+- name: Tars ball
+  include_tasks: download_tar.yml
+  vars:
+    destination: "{{ item.dest }}"
+    download_url:  "{{ item.url }}"
+  when: item.tar | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ item.url | basename }}"
+
+
+- name: CSD tar
+  include_tasks: download_csd.yml
+  vars:
+    destination: "{{ item.dest }}"
+    download_url:  "{{ item.url }}"
+  when: item.csd | default(false)
+  loop: "{{ httpd_repos }}"
+  loop_control:
+    label: "{{ item.url | basename }}"

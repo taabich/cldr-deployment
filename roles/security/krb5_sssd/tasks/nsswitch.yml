@@ -1,0 +1,22 @@
+---
+
+
+
+
+- name: Add sss to passwd entry if missing
+  ansible.builtin.replace:
+    path: /etc/nsswitch.conf
+    regexp: '^(passwd:\s*)(?!.*\bsss\b)(.*)$'
+    replace: '\1\2 sss'
+
+- name: Add sss to shadow entry if missing
+  ansible.builtin.replace:
+    path: /etc/nsswitch.conf
+    regexp: '^(shadow:\s*)(?!.*\bsss\b)(.*)$'
+    replace: '\1\2 sss'
+
+- name: Add sss to group entry if missing
+  ansible.builtin.replace:
+    path: /etc/nsswitch.conf
+    regexp: '^(group:\s*)(?!.*\bsss\b)(.*)$'
+    replace: '\1\2 sss'

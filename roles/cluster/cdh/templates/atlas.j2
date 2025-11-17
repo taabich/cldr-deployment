@@ -1,0 +1,58 @@
+
+{% set service_dependencies = {
+  'HDFS':  'hdfs',
+  'HBASE': 'hbase',
+  'KAFKA': 'kafka',
+  'SOLR': 'infra_solr',
+  'RANGER': 'ranger'
+} %}
+
+{
+  "refName": "atlas",
+  "serviceType": "ATLAS",
+  "displayName": "ATLAS",
+  "serviceConfigs": [
+    {
+      "name": "kerberos.auth.enable",
+      "value": "false"
+    },
+{% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ svc|lower() }}_service",
+      "ref": "{{ ref }}"
+    }{% if not loop.last %},{% endif %}
+{% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "atlas-ATLAS_SERVER-BASE",
+      "roleType": "ATLAS_SERVER",
+      "configs":
+      [
+      {
+        "name": "atlas_admin_password",
+        "value": "{{ atlas_admin_password }}"
+      },
+      {
+        "name": "atlas_authentication_method_file",
+        "value": "true"
+      },
+      {
+        "name": "atlas_solr_replication_factor",
+        "value": "2"
+      },
+      {
+        "name": "conf/atlas-application.properties_role_safety_valve",
+        "value": "atlas.proxyuser.{{ atlas_proxy_user }}.hosts={{ atlas_proxy_hosts }}\\natlas.proxyuser.{{ atlas_proxy_user }}.users={{ atlas_proxy_users }}\\natlas.proxyuser.{{ atlas_proxy_user }}.groups={{ atlas_proxy_groups }}"
+      }
+      ],
+      "base": true
+    },
+     {
+      "refName": "atlas-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }    
+  ]
+}

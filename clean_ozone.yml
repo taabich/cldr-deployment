@@ -1,0 +1,67 @@
+- name: Clean Ozone directories (purge or clean contents)
+  hosts: cluster
+  become: true
+  vars:
+    # Set to "purge" to delete and recreate the directories empty.
+    # Set to "clean" to keep the directories and remove only their contents.
+    cleanup_mode: "clean"
+
+    # Unique list of directories to clean (duplicates removed)
+    ozone_dirs:
+      - /data/ozone/om/ratis
+      - /data/ozone/om/metadata
+      - /data/ozone/scm/metadata
+      - /data/ozone/scm/ratis
+      - /data/ozone/dnstorage/data-01/hdds
+      - /data/ozone/dnstorage/data-02/ratis
+      - /data/ozone/dnstorage/data-02/hdds
+
+    # Owner/group/mode to use when (re)creating directories
+    ozone_dir_owner: ozone
+    ozone_dir_group: ozone
+    ozone_dir_mode: "0750"
+
+  tasks:
+    - name: Ensure target directories exist (for 'clean' mode)
+      when: cleanup_mode == "clean"
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ozone_dir_owner }}"
+        group: "{{ ozone_dir_group }}"
+        mode: "{{ ozone_dir_mode }}"
+      loop: "{{ ozone_dirs }}"
+
+    - name: Find contents to remove (for 'clean' mode)
+      when: cleanup_mode == "clean"
+      find:
+        paths: "{{ item }}"
+        file_type: any
+        hidden: yes
+        recurse: no
+      loop: "{{ ozone_dirs }}"
+      register: found_lists
+
+    - name: Remove directory contents (for 'clean' mode)
+      when: cleanup_mode == "clean"
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_lists.results | map(attribute='files') | list | flatten(levels=1) }}"
+
+    - name: Purge directories (delete completely)
+      when: cleanup_mode == "purge"
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ ozone_dirs }}"
+
+    - name: Recreate directories after purge
+      when: cleanup_mode == "purge"
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ozone_dir_owner }}"
+        group: "{{ ozone_dir_group }}"
+        mode: "{{ ozone_dir_mode }}"
+      loop: "{{ ozone_dirs }}"

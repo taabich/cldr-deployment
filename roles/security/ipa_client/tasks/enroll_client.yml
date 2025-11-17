@@ -1,0 +1,70 @@
+
+- name: Disable DNS processing in NetworkManager
+  copy:
+    dest: /etc/NetworkManager/conf.d/90-dns-none.conf
+    content: |
+      [main]
+      dns=none
+    owner: root
+    group: root
+    mode: '0644'
+  register: networmanager
+  when: ansible_distribution != "Ubuntu" and ipaserver_setup_dns
+
+- name: Reload NetworkManager service
+  systemd:
+    name: NetworkManager
+    state: reloaded
+  when: ansible_distribution != "Ubuntu" and ipaserver_setup_dns
+
+- name: Disable DNS processing in NetworkManager
+  copy:
+    dest: /etc/resolv.conf
+    content: |
+      search {{ipaserver_domain}}
+      nameserver {{ ipaserver_setup_nameserver_resolv }}
+    owner: root
+    group: root
+    mode: '0644'
+  when: networmanager is defined and ipaserver_setup_nameserver_resolv is defined
+  
+
+- name: Check CLIENT not setup
+  shell: >
+    echo '{{ipaadmin_password}}' | kinit admin@{{ipaserver_realm}} ; ipa host-find "{{ansible_fqdn }}"
+  register: client_exist
+  delegate_to: "{{ groups['ipaserver'] | first }}"
+  ignore_errors: True
+
+
+
+- name: Configure and enroll IPA client
+  command: >
+    ipa-client-install -U
+    --server={{ groups['ipaserver'] | first}} 
+    --domain={{ ipaserver_domain }}
+    --realm={{ ipaserver_realm }}
+    --principal=admin
+    --password={{ ipaadmin_password }}
+    --force-join --no-ntp
+  register: ipa_client_install
+  when: client_exist.rc == 1
+
+
+
+
+- name: Start and enable SSSD service
+  systemd:
+    name: sssd
+    state: restarted
+    enabled: true
+
+- name: Verify IPA client enrollment
+  shell: echo '{{ipaadmin_password}}' | kinit admin@{{ipaserver_realm}} ; ipa host-find "{{ansible_fqdn }}"
+  register: ipa_client_verify
+
+- name: Display IPA client enrollment status
+  debug:
+    msg: "IPA client enrollment successful: {{ ipa_client_verify.stdout }}"
+
+

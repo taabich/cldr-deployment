@@ -1,0 +1,20 @@
+
+
+
+
+- name: Playbook to configure IPA server
+  hosts: krb5_server
+  become: true
+  tasks:
+    - name: Stop IPA services
+      command: ipactl stop
+      ignore_errors: yes
+
+    - name: Uninstall IPA server configuration
+      command: ipa-server-install --uninstall -U
+
+    - name: Remove IPA server packages
+      package:
+        name: "ipa-server*"
+        state: absent
+

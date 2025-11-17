@@ -1,0 +1,222 @@
+
+enabled_services: "{{ clusters[].host_templates.values() | map('dict2items') | map('map', attribute='key') | flatten | unique }}"
+
+tls_enabled: false
+
+cluster_type: base
+
+#Liste of directories
+dfs_journalnode_edits_dir: "{{ journalnode_disks }}/dfs/jn"
+fs_checkpoint_dir_list: "{{ checkpoint_disks }}/dfs/snn"
+
+
+
+kafka_log_dirs: "{{ kafka_disks
+        | map('regex_replace', '^(.*)$','\\1/kafka')
+        | join(', ') }}"
+
+dfs_name_dir_list: "{{ namenode_disks
+        | map('regex_replace', '^(.*)$','\\1/dfs/nn')
+        | join(', ') }}"
+
+dfs_data_dir_list: "{{ datanode_disks
+        | map('regex_replace', '^(.*)$','\\1/dfs/dn')
+        | join(', ') }}"
+
+yarn_nodemanager_local_dirs: "{{ datanode_disks
+        | map('regex_replace', '^(.*)$','\\1/yarn/nm')
+        | join(', ') }}"
+
+yarn_nodemanager_log_dirs: "{{ datanode_disks
+        | map('regex_replace', '^(.*)$','\\1/yarn/container-logs')
+        | join(', ') }}"
+
+scratch_dirs:  "{{ datanode_disks
+        | map('regex_replace', '^(.*)$','\\1/impala/impalad')
+        | join(', ') }}"
+
+
+ozone_container_ratis_dir:
+         "{{ ozone_datanode_storage_disks
+        | map('regex_replace', '^(.*)$','\\1/ratis')
+        | join(', ') }}"
+
+ozone_hdds_datanode_dir:
+         "{{ ozone_datanode_storage_disks
+        | map('regex_replace', '^(.*)$','\\1/hdds')
+        | join(', ') }}"
+
+
+ozone_scm_db_dirs: "{{ozone_scm_disk}}/db"
+ozone_scm_metadata_dirs: "{{ozone_scm_disk}}/metadata"
+ozone_scm_ha_ratis_storage_dir: "{{ozone_scm_disk}}/ratis"
+ozone_om_db_dirs: "{{ozone_om_disk}}/db"
+ozone_om_metadata_dirs:  "{{ozone_om_disk}}/metadata"
+ozone_om_ratis_storage_dir:  "{{ozone_om_disk}}/ratis"
+ozone_scm_datanode_id_dir: "{{ozone_datanode_disk}}/scmid"
+ozone_dn_metadata_dirs: "{{ozone_datanode_disk}}/metadata"
+ozone_recon_db_dirs: "{{ozone_recon_disk}}/db"
+ozone_recon_scm_db_dirs: "{{ozone_recon_disk}}/scmdb"
+ozone_recon_om_db_dir: "{{ozone_recon_disk}}/omdb"
+ozone_recon_metadata_dirs: "{{ozone_recon_disk}}/metadata"
+
+
+provenance_repository: "{{nifi_provenance_disks|first}}/provenance_repository"
+flowfile_repository: "{{nifi_flow_disk}}/flowfile_repository"
+content_repository: "{{nifi_content_disks|first}}/content_repository"
+
+ranger_admin_password: "{{ admin_password }}"
+ranger_keyadmin_password: "{{ admin_password }}"
+rangertagsync_user_password: "{{ admin_password }}"
+rangerusersync_user_password: "{{ admin_password }}"
+
+knox_encryptquerystring_secret: "{{ admin_password }}"
+knox_hadoop_auth_config_signature_secret: "{{ admin_password }}"
+gateway_master_secret: "{{ admin_password }}"
+
+atlas_admin_password: "{{ admin_password }}"
+
+
+
+kms_services: [KEYTRUSTEE, RANGER_KMS, RANGER_KMS_KTS]
+sdx_services: [ATLAS, HDFS, HIVE, RANGER]
+
+default_cluster_base:
+  name: Cluster
+  data_contexts:
+    - name: SDX
+
+cluster_template_dry_run: no
+
+ha_enabled: yes
+
+
+old_cdh: "{{ cloudera_manager_version is version('6.0.0','<') }}"
+
+
+
+# --- HDFS configuration ---
+hdfs_supergroup: "admin_group"
+
+
+#YARN
+yarn_scheduler_maximum_allocation_mb: 24576
+yarn_scheduler_maximum_allocation_vcores: 12
+resourcemanager_config_safety_valve: "<property><name>yarn.resourcemanager.application-tag-based-placement.enable</name><value>true</value></property><property><name>yarn.resourcemanager.application-tag-based-placement.username.whitelist</name><value>hive</value></property>"
+
+yarn_nodemanager_resource_memory_mb: 24576
+yarn_nodemanager_resource_cpu_vcores: 12
+
+
+#NIFI
+# --- NiFi identity mappings ---
+nifi_identity_mapping_pattern_kerb: '^(.*?)@(.*?)$'
+nifi_identity_mapping_value_kerb: '$1'
+nifi_autogen_node_identities_dn_suffix: ', ST=CLOUDERA, C=INTRA'
+nifi_security_identity_mapping_value_dn: '$1'
+
+# --- NiFi web / ports ---
+nifi_web_https_port: 8080
+
+# --- NiFi JVM args ---
+nifi_java_arg_2: '-Xms2048m'
+nifi_java_arg_3: '-Xmx4096m'
+
+# --- NiFi authorizers (shell user/group provider) ---
+nifi_shell_user_provider_enabled: true
+nifi_shell_user_provider_exclude_groups: 'nifi'
+nifi_shell_user_provider_exclude_users: 'nifi'
+nifi_authorizers_xml_role_safety_valve: "<property><name>xml.authorizers.userGroupProvider.composite-configurable-user-group-provider.property.User Group Provider 2</name><value>shell-user-group-provider</value></property>"
+
+
+#HUE
+hue_auth_backend: "desktop.auth.backend.KnoxSpnegoDjangoBackend"
+
+
+
+# --- Atlas proxy user configuration ---
+atlas_proxy_user: "dpprofiler"
+atlas_proxy_hosts: "*"
+atlas_proxy_users: "*"
+atlas_proxy_groups: "*"
+
+
+#SSB
+ssb_default_admin_password: "{{ admin_password }}"
+ssb_yarn_ui_proxy: "/gateway/cdp-proxy/yarnuiv2/proxy"
+ssb_mve_proxy: "/gateway/cdp-proxy-api/ssb-mve-api"
+ssb_mve_loadbalancer_proxy: "/gateway/cdp-proxy/ssb-sse-ui-lb/ui"
+
+# --- Flink configuration ---
+flink_historyserver_web_port: 8182
+
+
+#HMS
+ranger_security_safety_valve_prop: "<property><name>xasecure.hive.uri.permission.coarse.check</name><value>true</value></property>"
+
+ranger_kms_masterkey_password:  "{{ admin_password }}"
+
+#OMID
+omid_conf_safety_valve:  "<property><name>omid.metrics.enabled</name><value>true</value></property>"
+
+
+#KMS
+ranger_kms_site_safety_valve: "<property><name>hadoop.kms.blacklist.DECRYPT_EEK</name><value>false</value></property>"
+
+
+enable_spark3: false
+
+scm_repositories: >-
+  {{
+    [ cloudera_archive_base_url ~ '/cdh7/' ~ cldr_versions.cdh.version ~ '/' ]
+    +
+    ( [ cloudera_archive_base_url ~ '/spark3/' ~ cldr_versions.spark3.version ~ '/' ]
+      if (enable_spark3 | bool) and ('spark3' in cldr_versions) and ('version' in cldr_versions.spark3)
+      else [] )
+    +
+    ( [ cloudera_archive_base_url ~ '/cfm2/' ~ cldr_versions.cfm.version ~ '/' ]
+      if (enable_cfm | bool) and ('cfm' in cldr_versions) and ('version' in cldr_versions.cfm)
+      else [] )
+    +
+    ( [ cloudera_archive_base_url ~ '/csa/' ~ cldr_versions.csa.version ~ '/' ]
+      if (enable_csa | bool) and ('csa' in cldr_versions) and ('version' in cldr_versions.csa)
+      else [] )
+  }}
+
+
+
+fs_defaultfs: "hdfs://ns{{ cluster_name }}"
+is_ozone: "{{ (fs_defaultfs | default('') | regex_search('^ofs://')) is not none }}"
+fs_prefix: "{{ 'ofs://' ~ cluster_name if is_ozone else 'hdfs://ns' ~ cluster_name }}"
+fs_hdfsprefix: "{{ 'ofs://' ~ cluster_name if is_ozone else '' }}"
+
+
+
+# ---- Hive warehouse dirs ----
+hive_warehouse_directory: "{{ fs_hdfsprefix }}/warehouse/tablespace/managed/hive"
+hive_warehouse_external_directory: "{{ fs_hdfsprefix }}/warehouse/tablespace/external/hive"
+
+# ---- MR/Services framework paths ----
+# Use your parcel/CDP version here if you want to pin it;
+# otherwise keep ${cdhVersion} literal to be resolved by CM.
+mr_framework_version: "{{ cdh_version | default('${cdhVersion}') }}"
+
+mapreduce_application_framework_path: >-
+  {{ fs_hdfsprefix }}/user/yarn/mapreduce/mr-framework/{{ mr_framework_version }}-mr-framework.tar.gz#mr-framework
+
+yarn_services_framework_path: >-
+  {{ fs_hdfsprefix }}/user/yarn/services/service-framework/${cdhVersion}/service-dep.tar.gz
+
+# ---- Ranger HDFS plugin audit (leave as HDFS unless you explicitly audit to OFS) ----
+ranger_plugin_hdfs_audit_url: "{{ fs_prefix }}/ranger/audit"
+
+# ---- CM YARN container usage (local paths) ----
+cm_yarn_container_usage_input_dir: "/tmp/cmYarnContainerMetrics"
+cm_yarn_container_usage_output_dir: "/tmp/cmYarnContainerMetricsAggregate"
+
+# ---- Tez / MR staging ----
+# Put Tez staging on distributed FS when using Ozone
+tez_staging_dir: "{{ fs_hdfsprefix }}/tmp/tez"
+yarn_app_mapreduce_am_staging_dir: "/user"
+hiveserver2_exec_scratchdir: "{{ fs_hdfsprefix }}/tmp/hive"
+

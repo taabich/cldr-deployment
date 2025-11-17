@@ -1,0 +1,77 @@
+
+{% set service_dependencies = {
+    'YARN': 'mapreduce_yarn',
+    'ZOOKEEPER': 'zookeeper',
+    'HIVE': 'hive',
+    'SPARK_ON_YARN': 'spark_on_yarn',
+    'SPARK3_ON_YARN': 'spark3_on_yarn',
+    'OZONE': 'ozone',
+    'ATLAS': 'atlas',
+    'HBASE': 'hbase'
+  } 
+%}
+
+{
+  "refName": "oozie",
+  "serviceType": "OOZIE",
+  "displayName": "OOZIE",
+  "serviceConfigs": [
+    {
+      "name": "oozie_upload_sharelib_cmd_timeout",
+      "value": "540"
+    },
+    {
+      "name": "oozie_servlet_callbackservlet_authentication_required",
+      "value": "false"
+    },
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "oozie-OOZIE_SERVER-BASE",
+      "roleType": "OOZIE_SERVER",
+      "configs": [
+        {
+        "name": "oozie_database_host",
+        "value": "{{ databases.OOZIE.host | append_database_port(databases.OOZIE.port | string) }}"
+        },
+        {
+          "name": "oozie_database_type",
+          "value": "{{ databases.OOZIE.type | format_database_type }}"
+        },
+        {
+          "name": "oozie_database_name",
+          "value": "{{ databases.OOZIE.name }}"
+        },
+        {
+          "name": "oozie_database_user",
+          "value": "{{ databases.OOZIE.user }}"
+        },
+        {
+          "name": "oozie_database_password",
+          "value": "{{ databases.OOZIE.password }}"
+        },
+        {
+          "name": "oozie_java_heapsize",
+          "value": "{{ oozie_java_heapsize | default('4294967296') }}"
+        },
+        {
+          "name": "oozie_plugins_list",
+          "value": "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService"
+        }
+        {% if oozie_proxyuser_enabled is defined and oozie_proxyuser_enabled %}
+        ,{
+          "name": "oozie_site_safety_valve",
+          "value": "<property><name>oozie.service.ProxyUserService.proxyuser.hue.groups</name><value>*</value></property><property><name>oozie.service.ProxyUserService.proxyuser.hue.hosts</name><value>*</value></property>"
+        }
+        {% endif %}
+      ],
+      "base": true
+    }
+  ]
+}

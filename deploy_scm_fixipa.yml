@@ -1,0 +1,9 @@
+
+# Enroll deployment hosts with FreeIPA Kerberos and possibly with DNS
+- name: Setup FreeIPA clients
+  hosts: cloudera_manager
+  become: yes
+  roles:
+
+    - role: scm/cm_fix_ipa
+      state: present

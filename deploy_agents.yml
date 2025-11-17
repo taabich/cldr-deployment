@@ -1,0 +1,8 @@
+
+
+- name: Install Cloudera Manager Agent on all nodes
+  hosts: cluster:!cloudera_manger
+  become: true
+  roles:
+  - role: scm/cm_repo
+  - role: scm/cm_agents

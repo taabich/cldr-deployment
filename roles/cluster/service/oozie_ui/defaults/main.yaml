@@ -1,0 +1,5 @@
+oozie_accounts:
+  - user: oozie
+    home: /var/lib/oozie
+    comment: Oozie User
+    keystore_acl: True

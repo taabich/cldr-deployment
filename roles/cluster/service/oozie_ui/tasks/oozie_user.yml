@@ -1,0 +1,39 @@
+- name: Ensure extra groups exist
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: >-
+    {{
+      oozie_accounts
+      | selectattr('extra_groups', 'defined')
+      | map(attribute='extra_groups')
+      | flatten
+      | unique
+    }}
+  when: oozie_accounts is defined
+
+- name: Create users
+  user:
+    name: "{{ item.user }}"
+    comment: "{{ item.comment | default('') }}"
+    home: "{{ item.home }}"
+    create_home: no
+    shell: /sbin/nologin
+    groups: "{{ item.extra_groups | default([]) | join(',') }}"
+    state: present
+  loop: "{{ oozie_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+
+
+- name: Ensure home directories exist
+  file:
+    path: "{{ item.home }}"
+    state: directory
+    owner: "{{ item.user }}"
+    group: "{{ (item.extra_groups | default([]) | first) | default(item.user) }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ oozie_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+

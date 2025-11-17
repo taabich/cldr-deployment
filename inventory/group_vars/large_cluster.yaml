@@ -1,0 +1,110 @@
+#80-200 workers
+
+clusters:
+  - name: "{{ cluster_name }}"
+    type: base
+
+    host_templates:
+
+      Master1:
+        HDFS: [NAMENODE, JOURNALNODE, FAILOVERCONTROLLER]
+        YARN: [RESOURCEMANAGER]
+        QUEUEMANAGER: [QUEUEMANAGER_WEBAPP]         # UI QM
+        ZOOKEEPER: [SERVER]
+        KUDU: [KUDU_MASTER]
+        HBASE: [MASTER]
+        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+      Master2:
+        HDFS: [NAMENODE, JOURNALNODE, FAILOVERCONTROLLER]
+        YARN: [RESOURCEMANAGER]
+        QUEUEMANAGER: [QUEUEMANAGER_WEBAPP]
+        ZOOKEEPER: [SERVER]
+        KUDU: [KUDU_MASTER]
+        HBASE: [MASTER]
+        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+      Master3:
+        ZOOKEEPER: [SERVER]
+        HDFS: [JOURNALNODE]                         # disque dédié recommandé
+        YARN: [JOBHISTORY]
+        SPARK_ON_YARN: [SPARK_YARN_HISTORY_SERVER]
+        KUDU: [KUDU_MASTER]                         # Kudu masters en nombre impair
+        HBASE: [MASTER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+        QUEUEMANAGER: [QUEUEMANAGER_STORE]          # Store QM (emplacement conseillé)
+
+      Utility1:
+        CM: [CLOUDERA_MANAGER_SERVER]
+        CRUISE_CONTROL: [CRUISE_CONTROL_SERVER]
+        STREAMS_MESSAGING_MANAGER: [STREAMS_MESSAGING_MANAGER_SERVER, STREAMS_MESSAGING_MANAGER_UI]
+        STREAMS_REPLICATION_MANAGER: [STREAMS_REPLICATION_MANAGER_SERVICE]
+
+      Utility2:
+        HIVE: [HIVEMETASTORE]
+        IMPALA: [CATALOGSERVER, STATESTORE]
+        OOZIE: [OOZIE_SERVER]
+
+      Utility3:
+        MGMT: [HOSTMONITOR]
+
+      Utility4:
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        RANGER_RMS: [RANGER_RMS_SERVER]             # si service présent dans ta distribution
+        ATLAS: [ATLAS_SERVER]
+        INFRA_SOLR: [SOLR_SERVER]
+
+      Utility5:
+        HIVE: [HIVEMETASTORE]                       # 2e metastore (HA/DR)
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        RANGER_RMS: [RANGER_RMS_SERVER]
+        ATLAS: [ATLAS_SERVER]
+        INFRA_SOLR: [SOLR_SERVER]
+
+      Utility6:
+        MGMT: [REPORTSMANAGER]
+
+      Utility7:
+        MGMT: [SERVICEMONITOR]
+
+      GatewayA:
+        HUE: [HUE_SERVER]
+        HIVE_ON_TEZ: [HIVESERVER2]
+        PHOENIX: [PHOENIX_QUERY_SERVER]
+        OZONE: [S3_GATEWAY]
+        KNOX: [KNOX_GATEWAY]                        # Knox #1 (HA)
+        # Gateways génériques si besoin de clients :
+        HDFS: [GATEWAY]
+        HBASE: [GATEWAY]
+        YARN: [GATEWAY]
+        IMPALA: [GATEWAY]
+        KAFKA: [GATEWAY]
+        TEZ: [GATEWAY]
+        SCHEMAREGISTRY: [GATEWAY]
+
+      GatewayB:
+        HIVE_ON_TEZ: [HIVESERVER2]
+        OZONE: [S3_GATEWAY]
+        KNOX: [KNOX_GATEWAY]                        # Knox #2 (HA)
+        HDFS: [GATEWAY]
+        HBASE: [GATEWAY]
+        YARN: [GATEWAY]
+        IMPALA: [GATEWAY]
+        KAFKA: [GATEWAY]
+        TEZ: [GATEWAY]
+        SCHEMAREGISTRY: [GATEWAY]
+
+      Worker:
+        HDFS: [DATANODE]
+        YARN: [NODEMANAGER]
+        IMPALA: [IMPALAD]
+        KUDU: [KUDU_TSERVER]
+        KAFKA: [KAFKA_BROKER, KAFKA_CONNECT]        # ≥ 3 brokers recommandés
+        HBASE: [REGIONSERVER]
+        INFRA_SOLR: [SOLR_SERVER]                   # viser ≥ 3 si Search
+        STREAMS_REPLICATION_MANAGER: [STREAMS_REPLICATION_MANAGER_DRIVER]
+        OZONE: [OZONE_DATANODE]

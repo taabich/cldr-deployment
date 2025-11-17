@@ -1,0 +1,82 @@
+- name: Slurp CSR from host
+  ansible.builtin.slurp:
+    src: "{{ tls_csr_path }}"
+  register: csr_slurped
+  no_log: true
+
+
+- name: Ensure CA CSR directory exists
+  delegate_to: "{{ groups.ca_server | first }}"
+  ansible.builtin.file:
+    path: "{{ ca_server_intermediate_path_csr }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy CSR to CA server (content-based, no local read)
+  delegate_to: "{{ groups.ca_server | first }}"
+  ansible.builtin.copy:
+    dest: "{{ ca_server_intermediate_path_csr }}/{{ ansible_fqdn }}.csr"
+    mode: "0644"
+    content: "{{ csr_slurped.content | b64decode }}"
+
+
+- name: Sign CSRs
+  shell:
+    cmd: >
+      exec 100>/tmp/ca_server.lock;
+      flock 100 &&
+      {{ openssl_path }} ca
+      -batch
+      -config {{ ca_server_intermediate_path }}/openssl.cnf
+      -extensions cloudera_req
+      -days 730
+      -notext
+      -md sha256
+      -in {{ ca_server_intermediate_path_csr }}/{{ ansible_fqdn }}.csr
+      -out {{ ca_server_intermediate_path_certs }}/{{ ansible_fqdn }}.pem
+      -passin pass:{{ ca_server_root_key_password }}
+    creates: "{{ ca_server_intermediate_path_certs }}/{{ ansible_fqdn }}.pem"
+  delegate_to: "{{ groups.ca_server | first }}"
+  connection: ssh
+
+
+
+- name: Slurp signed cert from CA server
+  become: true
+  delegate_to: "{{ groups.ca_server | first }}"
+  ansible.builtin.slurp:
+    src: "{{ ca_server_intermediate_path_certs }}/{{ ansible_fqdn }}.pem"
+  register: signed_cert_slurped
+
+- name: Write signed cert on controller
+  delegate_to: localhost
+  ansible.builtin.copy:
+    dest: "{{ local_certs_dir }}/{{ ansible_fqdn }}.pem"
+    mode: "0644"
+    content: "{{ signed_cert_slurped.content | b64decode }}"
+
+
+
+
+- name: Slurp remote certs (read as root)
+  delegate_to: "{{ groups['ca_server'][0] }}"
+  become: true
+  ansible.builtin.slurp:
+    src: "{{ item.src }}"
+  register: slurped
+  loop:
+    - { src: "{{ ca_server_root_cert_path }}",          name: "{{ ca_server_root_cert_name }}" }
+    - { src: "{{ ca_server_intermediate_cert_path }}",  name: "{{ ca_server_intermediate_cert_name }}" }
+    - { src: "{{ tls_chain_path }}",         name: "{{ ca_server_chain_cert_name }}" }
+  run_once: true   
+
+- name: Write certs to controller with desired names
+  ansible.builtin.copy:
+    dest: "{{ local_certs_dir }}/{{ item.item.name }}"
+    mode: "0644"
+    content: "{{ item.content | b64decode }}"
+  loop: "{{ slurped.results }}"
+  loop_control:
+     label: "{{ item.item.name }} ->{{ local_certs_dir }} "
+  delegate_to: localhost
+  run_once: true

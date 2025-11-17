@@ -1,0 +1,22 @@
+- hosts: cloudera_manager
+  become: yes
+
+
+  tasks:
+    - name: Stop cluster {{ item.name }}
+      include_role:
+        name: operations/stop_cluster
+      vars:
+        cluster: "{{ item }}"
+      loop: "{{ clusters }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Include role with cluster = {{ item.name }}
+      include_role:
+        name: operations/delete_cluster
+      vars:
+        cluster: "{{ item }}"
+      loop: "{{ clusters }}"
+      loop_control:
+        label: "{{ item.name }}"

@@ -1,0 +1,35 @@
+- name: Ensure FreeIPA Superuser if required
+  when:
+    - freeipa_superuser is defined
+    - freeipa_superuser | length > 0
+  block:
+    - name: Check FreeIPA vars
+      debug:
+        msg: |
+          ipa_user={{ ipa_admin_user }}
+          ipa_pass={{ ipaadmin_password  }}
+          ipa_host={{ groups.krb5_server | first }}
+
+    - name: Create Superuser if not present
+      community.general.ipa_user:
+        name: "{{ freeipa_superuser }}"
+        givenname: "{{ freeipa_superuser_gn | default('Cloudera') }}"
+        sn: "{{ freeipa_superuser_sn | default('Labs') }}"
+        password: "{{ freeipa_superuser_pw | default(krb5_password) }}"
+        update_password: on_create
+        ipa_host: "{{ groups.krb5_server | first }}"
+        ipa_user: "{{ ipa_admin_user }}"
+        ipa_pass: "{{ ipaadmin_password }}"
+        validate_certs: false   # ← seulement si certs auto-signés
+      register: ipa_user_create
+  
+    - name: Ensure Superuser is added to admins group
+      community.general.ipa_group:
+        name: "{{ ipa_admins_group }}"
+        user:
+          - "{{ freeipa_superuser }}"
+        append: true
+        ipa_host: "{{ groups.krb5_server | first }}"
+        ipa_pass: "{{ ipaadmin_password }}"
+        ipa_user: "{{ ipa_admin_user }}"
+        validate_certs: false   # ← seulement si certs auto-signés

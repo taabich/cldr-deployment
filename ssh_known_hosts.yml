@@ -1,0 +1,5 @@
+- name: Store known hosts of 'all' the hosts in the inventory file
+  hosts: localhost
+  connection: local
+  roles:
+   - name: prereqs/ssh_known_hosts

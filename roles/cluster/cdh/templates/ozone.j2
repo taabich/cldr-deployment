@@ -1,0 +1,159 @@
+
+{% set service_dependencies = {
+    'SOLR': 'solr',
+    'RANGER': 'ranger'
+  } 
+%}
+
+{
+  "refName": "ozone",
+  "serviceType": "OZONE",
+  "displayName": "OZONE",
+  "serviceConfigs": [
+    {
+      "name": "ozone.security.enabled",
+      "value": "false"
+    }, 
+  {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    {
+      "name": "ozone.service.id",
+      "value": "{{ cluster_name }}"
+    },
+    {
+      "name": "ozone.scm.primordial.node.id",
+      "value": "{{ groups.cluster_master_nodes | first | default(omit) }}"
+    },
+    {
+      "name": "ozone.administrators",
+      "value": "{{ default_admin_user | default('admin')}}"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "ozone-OZONE_MANAGER-BASE",
+      "roleType": "OZONE_MANAGER",
+      "configs": [
+        {
+          "name": "ozone-conf/ozone-site.xml_role_safety_valve",
+          "value": " <property><name>ozone.om.snapshot.load.native.lib</name><value>false</value></property>"
+        },
+        {
+          "name": "ozone.om.db.dirs",
+          "value": "{{ ozone_om_db_dirs  }}"
+        },
+        {
+          "name": "ozone.metadata.dirs",
+          "value": "{{ ozone_om_metadata_dirs  }}"
+        },
+        {
+          "name": "ozone.om.ratis.storage.dir",
+          "value": "{{ ozone_om_ratis_storage_dir }}"
+        },
+        {
+          "name": "om_max_heap_size",
+          "value": "{{ om_max_heap_size | default('4096')}}"
+        }
+      ],
+      "base": true
+    },
+    {
+      "refName": "ozone-STORAGE_CONTAINER_MANAGER-BASE",
+      "roleType": "STORAGE_CONTAINER_MANAGER",
+      "configs": [
+        {
+          "name": "ozone.scm.db.dirs",
+          "value": "{{ ozone_scm_db_dirs  }}"
+        },
+        {
+          "name": "ozone.metadata.dirs",
+          "value": "{{ ozone_scm_metadata_dirs }}"
+        },
+        {
+          "name": "ozone.scm.ha.ratis.storage.dir",
+          "value": "{{ ozone_scm_ha_ratis_storage_dir }}"
+        },
+        {
+          "name": "scm_max_heap_size",
+          "value": "{{ scm_max_heap_size | default('4096')}}"
+        }
+      ],
+      "base": true
+    },
+    {
+      "refName": "ozone-OZONE_DATANODE-BASE",
+      "roleType": "OZONE_DATANODE",
+      "configs": [
+        {
+          "name": "ozone-conf/ozone-site.xml_role_safety_valve",
+          "value": "<property><name>hdds.datanode.client.port</name><value>8501</value></property>"
+        },
+        {
+          "name": "ozone.scm.datanode.id.dir",
+          "value": "{{ ozone_scm_datanode_id_dir }}"
+        },
+        {
+          "name": "dfs.container.ratis.datanode.storage.dir",
+          "value": "{{ ozone_container_ratis_dir  }}"
+        },
+        {
+          "name": "hdds.datanode.dir",
+          "value": "{{ ozone_hdds_datanode_dir  }}"
+        },
+        {
+          "name": "ozone.metadata.dirs",
+          "value": "{{ ozone_dn_metadata_dirs }}"
+        }
+      ],
+      "base": true
+    },
+    {
+      "refName": "ozone-OZONE_RECON-BASE",
+      "roleType": "OZONE_RECON",
+      "configs": [
+        {
+          "name": "ozone.recon.db.dir",
+          "value": "{{ ozone_recon_db_dirs }}"
+        },
+        {
+          "name": "ozone.recon.scm.db.dirs",
+          "value": "{{ ozone_recon_scm_db_dirs }}"
+        },
+        {
+          "name": "ozone.recon.om.db.dir",
+          "value": "{{ ozone_recon_om_db_dir  }}"
+        },
+        {
+          "name": "ozone.metadata.dirs",
+          "value": "{{ ozone_recon_metadata_dirs  }}"
+        }
+      ],
+      "base": true
+    },
+    {
+      "refName": "ozone-OZONE_PROMETHEUS-BASE",
+      "roleType": "OZONE_PROMETHEUS",
+      "configs": [],
+      "base": true
+    },
+    {
+      "refName": "ozone-S3_GATEWAY-BASE",
+      "roleType": "S3_GATEWAY",
+      "configs": [],
+      "base": true
+    },
+    {
+      "refName": "ozone-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+
+  ]
+}
+

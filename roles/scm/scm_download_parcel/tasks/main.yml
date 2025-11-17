@@ -1,0 +1,16 @@
+- name: Ensure parcel repo directory exists
+  file:
+    path: "{{ cloudera_parcel_repo }}"
+    state: directory
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: "0755"
+
+- name: Process each SCM repository
+  ansible.builtin.include_tasks: download_parcels_from_repo.yml
+  vars:
+    repo: "{{ __scm_item }}"
+  loop: "{{ scm_repositories }}"
+  loop_control:
+    loop_var: __scm_item
+    label: __scm_item

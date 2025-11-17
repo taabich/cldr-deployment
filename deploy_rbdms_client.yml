@@ -1,0 +1,9 @@
+
+# Install DBs connectors
+
+- name: Install Postgres Connector
+  hosts: cloudera_manager, cluster
+  gather_facts: no
+  become: yes
+  roles:
+    - role: db/drivers/postgresql_connector

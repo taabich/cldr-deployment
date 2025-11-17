@@ -1,0 +1,24 @@
+{
+  "refName": "tez",
+  "serviceType": "TEZ",
+  "displayName": "TEZ",
+  "serviceConfigs": [
+   {
+      "name": "yarn_service",
+      "ref": "yarn"
+    },
+    
+     {
+      "name": "tez.staging-dir",
+      "value": "{{ tez_staging_dir  }}"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "tez-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+  ]
+}

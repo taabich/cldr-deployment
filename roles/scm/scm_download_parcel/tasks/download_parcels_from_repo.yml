@@ -1,0 +1,56 @@
+- name: Ensure parcel repo directory exists
+  file:
+    path: "{{ cloudera_parcel_repo }}"
+    state: directory
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: "0755"
+
+- name: Fetch manifest.json from {{ repo }}
+  ansible.builtin.uri:
+    url: "{{ repo | trim('/') }}/manifest.json"
+    return_content: true
+    validate_certs: true
+  register: _manifest
+  failed_when: _manifest.status not in [200]
+
+- name: Extract OS-compatible parcel names (excluding KEYTRUSTEE_SERVER and ppc64le)
+  set_fact:
+    _os_parcels: >-
+      {{
+        (_manifest.content | from_json).parcels
+        | selectattr('parcelName', 'search', os_pattern)
+        | rejectattr('parcelName', 'search', 'KEYTRUSTEE_SERVER-')
+        | rejectattr('parcelName', 'search', 'ppc64le.parcel$')
+        | map(attribute='parcelName')
+        | list
+      }}
+
+- name: Debug filtered parcels
+  debug:
+    var: _os_parcels
+
+- name: Download OS-specific parcel files (filtered)
+  ansible.builtin.get_url:
+    url:  "{{ repo | trim('/') }}/{{ p }}"
+    dest: "{{ cloudera_parcel_repo }}/{{ p }}"
+    mode: "0644"
+    owner: cloudera-scm
+    group: cloudera-scm
+    force: no
+  loop: "{{ _os_parcels }}"
+  loop_control:
+    loop_var: p
+
+- name: Download parcel sha1 files (best-effort)
+  ansible.builtin.get_url:
+    url:  "{{ repo | trim('/') }}/{{ p }}.sha1"
+    dest: "{{ cloudera_parcel_repo }}/{{ p }}.sha1"
+    mode: "0644"
+    owner: cloudera-scm
+    group: cloudera-scm
+    force: no
+  loop: "{{ _os_parcels }}"
+  loop_control:
+    loop_var: p
+  ignore_errors: yes

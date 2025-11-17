@@ -1,0 +1,11 @@
+
+# Enroll deployment hosts with FreeIPA Kerberos and possibly with DNS
+- name: Setup FreeIPA clients
+  hosts: cloudera_manager:cluster
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/group_vars/krb5_server.yaml"
+  roles:
+
+    - role: security/ipa_client
+      state: present

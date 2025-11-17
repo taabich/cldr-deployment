@@ -1,0 +1,58 @@
+# Yum Packages
+
+- name: Install - Package installation
+  when: ipaserver_install_packages | bool
+  block:
+
+  - name: Install - Ensure that IPA server packages are installed
+    ansible.builtin.package:
+      name: "{{ python_packages }}"
+      state: present
+
+  - name: Install - Ensure that IPA server packages are installed
+    ansible.builtin.package:
+      name: "{{ ipaserver_packages }}"
+      state: present
+
+  - name: Install - Ensure that IPA server packages for dns are installed
+    ansible.builtin.package:
+      name: "{{ ipaserver_packages_dns }}"
+      state: present
+    when: ipaserver_setup_dns | bool
+
+  - name: Install - Ensure that IPA server packages for adtrust are installed
+    ansible.builtin.package:
+      name: "{{ ipaserver_packages_adtrust }}"
+      state: present
+    when: ipaserver_setup_adtrust | bool
+
+  - name: Install - Ensure that firewall packages installed
+    ansible.builtin.package:
+      name: "{{ ipaserver_packages_firewalld }}"
+      state: present
+    when: ipaserver_setup_firewalld | bool
+
+
+  - name: Ensure firewalld is running
+    service:
+      name: firewalld
+      state: restarted
+      enabled: true
+
+  - name: Open required FreeIPA ports in the firewall
+    firewalld:
+      service: "{{ item }}"
+      permanent: true
+      state: enabled
+    loop:
+      - freeipa-ldap
+      - freeipa-ldaps
+      - dns
+      - kerberos
+      - ntp
+      - http
+      - https
+    notify: reload_firewalld
+
+
+

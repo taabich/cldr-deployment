@@ -1,0 +1,10 @@
+- name: Install RDBMS
+  hosts: db_server
+  become: yes
+  tasks:
+    - name: Install of database
+      import_role:
+        name: db/postgresql
+      tags:
+        - database
+

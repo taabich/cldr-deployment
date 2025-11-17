@@ -1,0 +1,45 @@
+---
+# tasks file for ipaclient
+
+- name: Install - Ensure that IPA client packages are installed
+  ansible.builtin.package:
+    name: "{{ ipaclient_packages }}"
+    state: present
+  when: ipaclient_install_packages | bool
+
+- name: Install - Set ipaclient_servers
+  ansible.builtin.set_fact:
+    ipaclient_servers: "{{ groups['freeipa'] | list }}"
+  when: groups.ipaservers is defined and ipaclient_servers is not defined
+
+- name: Install - Set ipaclient_servers from cluster inventory
+  ansible.builtin.set_fact:
+    ipaclient_servers: "{{ groups['freeipa'] | list }}"
+  when: ipaclient_no_dns_lookup | bool and groups.ipaserver is defined and
+        ipaclient_servers is not defined
+
+- name: Install - Check that either password or keytab is set
+  ansible.builtin.fail:
+    msg: "ipaadmin_password and ipaadmin_keytab cannot be used together"
+  when: ipaadmin_keytab is defined and ipaadmin_password is defined
+
+- name: Install - Set default principal if no keytab is given
+  ansible.builtin.set_fact:
+    ipaadmin_principal: admin
+  when: ipaadmin_principal is undefined and ipaclient_keytab is undefined
+
+- name: Install - DNS resolver configuration
+  when: ipaclient_configure_dns_resolver | bool
+        and not ipaclient_on_master | bool
+  block:
+
+  - name: Install - Fail on missing ipaclient_domain and ipaserver_domain
+    ansible.builtin.fail:
+      msg: "ipaclient_domain or ipaserver_domain is required for ipaclient_configure_dns_resolver"
+    when: ipaserver_domain is not defined and ipaclient_domain is not defined
+
+  - name: Install - Fail on missing ipaclient_servers
+    ansible.builtin.fail:
+      msg: "ipaclient_dns_servers is required for ipaclient_configure_dns_resolver"
+    when: ipaclient_dns_servers is not defined
+

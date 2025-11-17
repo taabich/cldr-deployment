@@ -1,0 +1,31 @@
+cloudera_manager_distro_name: "{{ ansible_os_family | lower }}"
+cloudera_manager_distro_version: "{{ ansible_distribution_major_version }}"
+
+krb5_enc_types: "rc4-hmac aes256-cts aes128-cts"
+
+
+
+tmp_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}"
+
+host_ssh_username: root
+host_ssh_password: cloudera
+
+license_local_tmp_path: /tmp/license.txt
+
+enable_spark3: false
+scm_repositories: >-
+  {{
+    [ cloudera_archive_base_url ~ '/cdh7/' ~ cldr_versions.cdh.version ~ '/' ]
+    +
+    ( [ cloudera_archive_base_url ~ '/spark3/' ~ cldr_versions.spark3.version ~ '/' ]
+      if (enable_spark3 | bool) and ('spark3' in cldr_versions) and ('version' in cldr_versions.spark3)
+      else [] )
+    +
+    ( [ cloudera_archive_base_url ~ '/cfm2/' ~ cldr_versions.cfm.version ~ '/' ]
+      if (enable_cfm | bool) and ('cfm' in cldr_versions) and ('version' in cldr_versions.cfm)
+      else [] )
+    +
+    ( [ cloudera_archive_base_url ~ '/csa/' ~ cldr_versions.csa.version ~ '/' ]
+      if (enable_csa | bool) and ('csa' in cldr_versions) and ('version' in cldr_versions.csa)
+      else [] )
+  }}

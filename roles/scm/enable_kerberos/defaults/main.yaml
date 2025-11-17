@@ -1,0 +1,45 @@
+cloudera_manager_distro_name: "{{ ansible_os_family | lower }}"
+cloudera_manager_distro_version: "{{ ansible_distribution_major_version }}"
+
+krb5_enc_types: "rc4-hmac aes256-cts aes128-cts"
+
+
+
+
+krb_parameters:
+  items: 
+    - name: KDC_HOST
+      value: "{{ krb5_kdc_host | default(groups['krb5_server'][0]) }}"
+    - name: KDC_ADMIN_HOST
+      value: "{{ krb5_kadmin_host | default(groups['krb5_server'][0]) }}"
+    - name: krb_domain
+      value: "{{ krb5_domain | upper }}"  
+    - name: kdc_type
+      value: "{{ krb5_kdc_type }}"
+    - name: KRB_ENC_TYPES
+      value: "{{ krb5_enc_types }}"
+    - name: SECURITY_REALM
+      value: "{{ krb5_realm }}"
+#    - name: AD_ACCOUNT_PREFIX
+#      value: "{{ krb5_kdc_active_directory_prefix | default(None) }}"
+    - name: AD_KDC_DOMAIN
+      value: "{{ krb5_kdc_active_directory_suffix | default('ou=hadoop,DC=hadoop,DC=com') }}"
+    - name: AD_DELETE_ON_REGENERATE
+      value: "{{ krb5_kdc_active_directory_delete_on_regenerate | default('false') }}"
+#    - name: KDC_ACCOUNT_CREATION_HOST_OVERRIDE
+#      value: "{{ krb5_kdc_account_creation_host_override | default(None) }}"
+    - name: AD_SET_ENCRYPTION_TYPES
+      value: "{{ krb5_kdc_active_directory_set_encryption_types | default('false') }}"
+#    - name: GEN_KEYTAB_SCRIPT
+#      value: "{{ krb5_keytab_retrieval_script | default(None) }}"
+
+
+tls_activated: false
+
+
+tmp_dir: "{{ ansible_env.TMPDIR | default('/tmp') }}"
+
+host_ssh_username: root
+host_ssh_password: cloudera
+
+

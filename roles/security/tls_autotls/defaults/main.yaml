@@ -1,0 +1,25 @@
+cmca_dir: /tmp/cmca_dir
+
+
+
+
+# Si tu es dans un environnement FreeIPA
+free_ipa: false
+
+# Groupe Ansible utilisé pour alimenter hostCerts (par défaut: all)
+hosts_group: "cluster"
+
+# Booleans rendus comme vrais booléens JSON
+configure_all_services: true
+interpret_as_filenames: true
+
+
+#node_password
+node_username: root
+cm_username: "root"
+node_sshport: 22
+
+cm_owner: "cloudera-scm"
+cm_group: "cloudera-scm"
+
+tls_autotls_location: /opt/cloudera/AutoTLS

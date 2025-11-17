@@ -1,0 +1,7 @@
+
+
+
+- name: Create nifi user
+  include_tasks: nifi_user.yml
+  when: enable_cfm is defined and enable_cfm|bool
+

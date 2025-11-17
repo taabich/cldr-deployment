@@ -1,0 +1,75 @@
+
+{% set service_dependencies = {
+  'OOZIE': 'oozie',
+  'HBASE': 'hbase',
+  'HIVE_ON_TEZ': 'hive',
+  'HIVE': 'hms',
+  'IMPALA': 'impala',
+  'ATLAS': 'atlas',
+  'SOLR': 'solr',
+  'ZOOKEEPER': 'zookeeper'
+} %}
+{
+  "refName": "hue",
+  "serviceType": "HUE",
+  "displayName": "HUE",
+  "serviceConfigs": [
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref }}_service",
+      "ref": "{{ svc|lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    {
+      "name": "database_host",
+      "value": "{{ databases.HUE.host }}"
+    },
+    {
+      "name": "database_port",
+      "value": "{{ databases.HUE.port }}"
+    },
+    {
+      "name": "database_type",
+      "value": "{{ databases.HUE.type | format_database_type }}"
+    },
+    {
+      "name": "database_name",
+      "value": "{{ databases.HUE.name }}"
+    },
+    {
+      "name": "database_user",
+      "value": "{{ databases.HUE.user }}"
+    },
+    {
+      "name": "database_password",
+      "value": "{{ databases.HUE.password }}"
+    }, 
+    {
+      "name": "auth_backend",
+      "value": "{{ hue_auth_backend }}"
+    },
+    {
+      "name": "knox_proxyhosts",
+      "value": "{{knox_proxyhosts| first }}"
+    },
+    {
+      "name": "hue_service_safety_valve",
+      "value": "[impala]\nserver_port=21051\n\n[beeswax]\ndownload_cell_limit=10"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "hue-HUE_SERVER-BASE",
+      "roleType": "HUE_SERVER",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hue-HUE_LOAD_BALANCER-BASE",
+      "roleType": "HUE_LOAD_BALANCER",
+      "configs": [],
+      "base": true
+    }
+  
+  ]
+}

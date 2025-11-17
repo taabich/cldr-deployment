@@ -1,0 +1,56 @@
+{% set service_dependencies = {
+  'KAFKA': 'kafka'
+} %}
+
+{
+  "refName": "streams_replication_manager",
+  "serviceType": "STREAMS_REPLICATION_MANAGER",
+  "displayName": "SRM",
+  "serviceConfigs": [
+ 
+      {
+        "name": "clusters",
+        "value": "primary,secondary"
+      },
+      {
+        "name": "kerberos.auth.enable",
+        "value": "false"
+      },
+      {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+        {
+          "name": "{{ ref }}_service",
+          "ref": "{{ ref }}"
+        }{% if not loop.last %},{% endif %}
+      {% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "streams_replication_manager-STREAMS_REPLICATION_MANAGER_DRIVER-BASE",
+      "roleType": "STREAMS_REPLICATION_MANAGER_DRIVER",
+      "configs": [
+        {
+          "name": "streams.replication.manager.driver.target.cluster",
+          "value": "primary"
+        },
+        {
+          "name": "srm.properties_role_safety_valve",
+          "value": "workers.internal.topic.create.retry.backoff.ms=20000\nworkers.internal.topic.create.retries=20\nworkers.metrics.topic.creation.timeout.ms=300000\nconnectors.metrics.topic.creation.timeout.ms=300000\ntopic.listener.topic.creation.timeout.ms=300000\n\nworkers.default.api.timeout.ms=180000\ndefault.api.timeout.ms=180000\n"
+        }
+      ],
+      "base": true
+    },
+        {
+      "refName": "streams_replication_manager-STREAMS_REPLICATION_MANAGER_SERVICE-BASE",
+      "roleType": "STREAMS_REPLICATION_MANAGER_SERVICE",
+      "configs": [
+        {
+          "name": "streams.replication.manager.service.target.cluster",
+          "value": "primary"
+        }
+        ],
+      "base": true
+    }    
+  ]
+}
+
+

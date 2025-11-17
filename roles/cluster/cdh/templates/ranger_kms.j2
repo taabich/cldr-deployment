@@ -1,0 +1,49 @@
+{
+  "refName": "ranger_kms",
+  "serviceType": "RANGER_KMS",
+  "displayName": "RANGER_KMS",
+  "serviceConfigs": [
+    {
+      "name": "zookeeper_service",
+      "value": "zookeeper"
+    },
+    {
+      "name": "RANGER_KMS_service_env_safety_valve",
+      "value": "JAVA_OPTS=-Dzookeeper.sasl.client.username=zookeeper"
+    },
+    {
+      "name": "hadoop_kms_authentication_type",
+      "value": "simple"
+    },
+    { "name": "ranger_kms_database_host", "value": "{{ databases.RANGER_KMS.host }}" },
+    { "name": "ranger_kms_database_user", "value": "{{ databases.RANGER_KMS.user }}" },
+    { "name": "ranger_kms_database_type", "value": "{{ databases.RANGER_KMS.type  | format_database_type}}" },
+    { "name": "ranger_kms_database_port", "value": "{{ databases.RANGER_KMS.port  }}" },
+    { "name": "ranger_kms_database_password", "value": "{{ databases.RANGER_KMS.password }}" }
+    
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "ranger_kms-RANGER_KMS_SERVER-BASE",
+      "roleType": "RANGER_KMS_SERVER",
+      "configs": [
+        { "name": "ranger_kms_master_key_password", "value": "{{ ranger_kms_masterkey_password }}" },
+        {
+          "name": "hadoop_kms_authentication_signer_secret_provider",
+          "value": "zookeeper"
+        },
+        {
+          "name": "conf/kms-site.xml_role_safety_valve",
+          "value": "<property><name>hadoop.kms.authentication.zk-dt-secret-manager.enable</name><value>true</value></property><property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkConnectionString</name><value>{{zk_hosts_string}}</value></property><property><name>hadoop.kms.authentication.zk-dt-secret-manager.znodeWorkingPath</name><value>zkrangerkms</value></property><property><name>hadoop.kms.authentication.zk-dt-secret-manager.zkAuthType</name><value>sasl</value></property><property><name>hadoop.kms.authentication.zk-dt-secret-manager.kerberos.keytab</name><value>{% raw %}{{CMF_CONF_DIR}}{% endraw %}/ranger_kms.keytab</value></property>"
+        },
+        {
+          "name": "hadoop_kms_authentication_signer_secret_provider_zookeeper_auth_type",
+          "value": "sasl"
+        }
+        
+      ],
+      "base": true
+    } 
+
+  ]
+}

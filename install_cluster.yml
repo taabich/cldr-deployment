@@ -1,0 +1,3 @@
+- import_playbook: cmd_cluster_delete.yml
+- import_playbook: clean_disks.yml
+- import_playbook: deploy_cluster.yml

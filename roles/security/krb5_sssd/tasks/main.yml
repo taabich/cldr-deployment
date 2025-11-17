@@ -1,0 +1,10 @@
+# Copyright 2022 TOSIT.IO
+# SPDX-License-Identifier: Apache-2.0
+
+---
+
+- import_tasks: sssd.yml
+- import_tasks: nsswitch.yml
+- import_tasks: pam.yml
+- import_tasks: nscd.yml
+- import_tasks: shadow.yml

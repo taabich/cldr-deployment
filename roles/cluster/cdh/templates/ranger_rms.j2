@@ -1,0 +1,34 @@
+{
+  "refName": "ranger_rms",
+  "serviceType": "RANGER_RMS",
+  "displayName": "RANGER_RMS",
+  "serviceConfigs": [
+    
+    {
+      "name": "ranger_rms_authentication",
+      {% if kerberos_enabled %}
+      "value": "kerberos"
+      {% else %}
+      "value": "simple"
+      {% endif %}
+
+    },
+  
+    {
+      "name": "ranger_service",
+      "value": "ranger"
+    },
+    {
+      "name": "zookeeper_service",
+      "value": "zookeeper"
+    }
+],
+  "roleConfigGroups": [
+    {
+      "refName": "ranger_rms-RANGER_RMS_SERVER-BASE",
+      "roleType": "RANGER_RMS_SERVER",
+      "configs": [],
+      "base": true
+    }  
+  ]
+}

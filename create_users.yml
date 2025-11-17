@@ -1,0 +1,8 @@
+
+
+- name: Install Cloudera Manager Agent on all nodes
+  hosts: cluster, cloudera_amanger
+  roles:
+
+    - role: prereqs/local_accounts
+      state: present

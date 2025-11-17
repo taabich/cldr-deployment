@@ -1,0 +1,18 @@
+
+# Enroll deployment hosts with FreeIPA Kerberos and possibly with DNS
+- name: Setup FreeIPA clients
+  hosts: cloudera_manager:cluster
+  become: yes
+  tasks:
+  - name: Uninstall FreeIPA Client
+    hosts: all
+    become: yes
+    tasks:
+      - name: Uninstall IPA client
+        command: ipa-client-install --uninstall -U
+        ignore_errors: yes  # In case client is already partially removed
+
+      - name: Remove IPA client packages
+        package:
+          name: "ipa-client*"
+          state: absent

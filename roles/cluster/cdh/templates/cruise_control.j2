@@ -1,0 +1,17 @@
+{
+  "refName": "cruise_control",
+  "serviceType": "CRUISE_CONTROL",
+  "displayName": "CRUISE_CONTROL",
+  "serviceConfigs": [
+  { "name": "zookeeper_service", "ref": "zookeeper" }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "cruise_control-CRUISE_CONTROL_SERVER-BASE",
+      "roleType": "CRUISE_CONTROL_SERVER",
+      "configs": [],
+      "base": true
+    }
+       
+  ]
+}

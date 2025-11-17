@@ -1,0 +1,181 @@
+# SERVICEWIDE: application des configs de service (inchangé, avec guards)
+- name: Apply SERVICEWIDE configs for each service
+  vars:
+    service_name: "{{ item.key }}"
+    service_body: >-
+      {{ {'items':
+            (item.value.SERVICEWIDE | default({}) | dict2items)
+            | json_query('[].{name: key, value: value}')
+         } }}
+  when: item.value.SERVICEWIDE is defined and (item.value.SERVICEWIDE | length) > 0
+  loop: "{{ cluster_update_config | dict2items }}"
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services/{{ service_name |lower }}/config"
+    method: PUT
+    force_basic_auth: true
+    status_code: 200
+    body_format: json
+    body: "{{ service_body }}"
+    validate_certs: false
+  register: servicewide_result
+
+# ------- ROLE CONFIGS (non-mgmt) -------
+- name: Build role_updates via filter
+  set_fact:
+    role_updates: "{{ cluster_update_config | cm_role_updates | default([]) }}"
+
+# Lister tous les services du cluster pour mapper TYPE -> NAME
+- name: List all services for type->name mapping
+  when: (role_updates | length) > 0
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services"
+    method: GET
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: svc_list
+
+# Construire le mapping TYPE -> NAME (sans zip/dict piégeux)
+- name: Build type->name mapping
+  when: (role_updates | length) > 0
+  set_fact:
+    svc_type_to_name: "{{ svc_type_to_name | default({}) | combine({ item.type: item.name }) }}"
+  loop: "{{ svc_list.json['items'] | default([]) }}"
+
+# Normaliser role_updates pour toujours utiliser le **NAME** de service
+- name: Ensure role_updates is a list
+  set_fact:
+    role_updates: "{{ role_updates | default([]) | list }}"
+
+- name: Init accumulator for normalized role updates
+  when: (role_updates | length) > 0
+  set_fact:
+    role_updates_by_name: []
+
+- name: Normalize role_updates to service NAMES (TYPE -> NAME if needed)
+  when: (role_updates | length) > 0
+  set_fact:
+    role_updates_by_name: "{{ role_updates_by_name + [ normalized ] }}"
+  vars:
+    normalized: >-
+      {{ item | combine({
+           'service': (svc_type_to_name[item.service] | default(item.service))
+         }) }}
+  loop: "{{ role_updates }}"
+  loop_control:
+    label: "{{ item.service }}"
+
+# Liste des services à interroger (noms uniques)
+- name: Services to fetch RCGs for (by name)
+  when: (role_updates_by_name | default([]) | length) > 0
+  set_fact:
+    svc_for_rcgs_list: "{{ role_updates_by_name | map(attribute='service') | reject('equalto', None) | unique | list }}"
+
+# Découvrir les Role Config Groups (RCG) pour chaque service (par NOM)
+- name: Discover Role Config Groups per service
+  when: (svc_for_rcgs_list | default([]) | length) > 0
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services/{{ item }}/roleConfigGroups"   # <-- pas de lower
+    method: GET
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  loop: "{{ svc_for_rcgs_list }}"
+  register: rcg_lists
+
+# Construire rcg_lookup via zip services <-> json.items (chemin "happy path")
+- name: Build rcg_lookup (zip services with JSON items)
+  when:
+    - (svc_for_rcgs_list | default([]) | length) > 0
+    - (rcg_lists.results | default([]) | length) == (svc_for_rcgs_list | length)
+  set_fact:
+    rcg_lookup: >-
+      {{ dict(
+           svc_for_rcgs_list
+           | zip(
+               rcg_lists.results | default([])
+               | map(attribute='json.items') | map('default', []) | list
+             )
+         ) }}
+
+# Fallback si certaines requêtes ont échoué (ex. 404)
+- name: Build rcg_lookup from successful calls only (fallback)
+  when:
+    - (svc_for_rcgs_list | default([]) | length) > 0
+    - (rcg_lists.results | default([]) | length) != (svc_for_rcgs_list | length)
+  vars:
+    ok_results: "{{ rcg_lists.results | default([]) | selectattr('status','equalto',200) | list }}"
+    ok_services: >-
+      {{ ok_results
+         | map(attribute='invocation.module_args.endpoint')
+         | map('regex_search', '/services/([^/]+)/roleConfigGroups', '\\1') | list }}
+    ok_items: "{{ ok_results | map(attribute='json.items') | map('default', []) | list }}"
+  set_fact:
+    rcg_lookup: "{{ dict(ok_services | zip(ok_items)) }}"
+
+# Résoudre les updates vers des noms de RCG concrets
+- name: Resolve role updates to concrete RCG names
+  when: (role_updates_by_name | default([]) | length) > 0
+  set_fact:
+    role_updates_resolved: "{{ role_updates_by_name | cm_resolve_role_updates(rcg_lookup | default({})) }}"
+
+# Valeur par défaut si aucune update
+- name: Default empty resolved list when no role updates
+  when: (role_updates | default([]) | length) == 0
+  set_fact:
+    role_updates_resolved: []
+
+# Appliquer les ROLE configs (RCG résolus) — pas de | lower sur le service
+- name: Apply ROLE configs (resolved RCG)
+  when: (role_updates_resolved | default([]) | length) > 0
+  vars:
+    payload: >-
+      {{ {'items':
+            (item.settings | default({}) | dict2items)
+            | json_query('[].{name: key, value: value}')
+         } }}
+  loop: "{{ role_updates_resolved }}"
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services/{{ item.service |lower }}/roleConfigGroups/{{ item.rcgName }}/config"
+    method: PUT
+    force_basic_auth: true
+    status_code: 200
+    body_format: json
+    body: "{{ payload }}"
+    validate_certs: false
+  register: rolecfg_result
+
+# ------- MGMT SERVICE role configs -------
+- name: Get Mgmt service Role Config Groups
+  when: (cluster_update_config.mgmt_configs | default({})) | length > 0
+  cm_api:
+    endpoint: "/cm/service/roleConfigGroups"
+    method: GET
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: mgmt_rcgs
+
+- name: Build mgmt_updates via filter
+  when: (cluster_update_config.mgmt_configs | default({})) | length > 0
+  set_fact:
+    mgmt_updates: "{{ (cluster_update_config.mgmt_configs | default({})) | cm_mgmt_updates(mgmt_rcgs.json.items | default([])) }}"
+
+- name: Apply MGMT role configs
+  when: mgmt_updates is defined and (mgmt_updates | length) > 0
+  vars:
+    payload: >-
+      {{ {'items':
+            (item.settings | default({}) | dict2items)
+            | json_query('[].{name: key, value: value}')
+         } }}
+  loop: "{{ mgmt_updates }}"
+  cm_api:
+    endpoint: "/cm/service/roleConfigGroups/{{ item.rcgName }}/config"
+    method: PUT
+    force_basic_auth: true
+    status_code: 200
+    body_format: json
+    body: "{{ payload }}"
+    validate_certs: false
+  register: mgmtcfg_result

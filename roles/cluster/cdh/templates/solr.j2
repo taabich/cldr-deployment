@@ -1,0 +1,50 @@
+{
+  "refName": "solr",
+  "serviceType": "SOLR",
+  "displayName": "SOLR",
+  "serviceConfigs": [
+    {
+      "name": "enable_ranger_authorization",
+      "value": true
+    },
+    {
+      "name": "zookeeper_znode",
+      "value": "/solr"
+    },
+    {
+      "name": "hdfs_data_dir",
+      "value": "/solr"
+    }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "solr-SOLR_SERVER-BASE",
+      "roleType": "SOLR_SERVER",
+      "configs": [
+        {
+          "name": "solr_graceful_stop_timeout",
+          "value": "5"
+        },
+        {
+          "name": "solr_data_dir",
+          "value": "{{solr_datadir}}"
+        },
+        {
+          "name": "solr_java_heapsize",
+          "value": "{{ solr_java_heapsize | default('4294967296') }}"
+        },
+        {
+          "name": "solr_java_direct_memory_size",
+          "value": "{{ solr_java_direct_memory_size | default('8589934592') }}"
+        }
+      ],
+      "base": true
+    },
+     {
+      "refName": "solr-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }      
+  ]
+}

@@ -1,0 +1,7 @@
+max_connections: 200
+
+__postgresql_config_path: "/var/lib/pgsql/data"
+
+postgres_hba_file: "{{ __postgresql_config_path }}/pg_hba.conf"
+
+postgresql_daemon: postgresql

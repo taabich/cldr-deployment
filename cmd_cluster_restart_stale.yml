@@ -1,0 +1,9 @@
+- hosts: cloudera_manager
+  become: yes
+
+
+  tasks:
+    - name: Restart Stale 
+      include_role:
+        name: operations/restart_stale
+

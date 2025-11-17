@@ -1,0 +1,4 @@
+- name: Copy certs
+  include_tasks: copy_tocm.yml  
+- name: Apply autotls
+  include_tasks: autotls.yml  

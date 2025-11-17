@@ -1,0 +1,48 @@
+---
+
+
+
+- name: Install Cloudera Manager Server packages
+  ansible.builtin.yum:
+    name:
+      - cloudera-manager-server
+      - cloudera-manager-daemons
+      - cloudera-manager-agent
+    state: present
+
+- name: Configure Cloudera Manager Agent 'server_host'
+  lineinfile:
+    dest: /etc/cloudera-scm-agent/config.ini
+    regexp: "^server_host"
+    line: 'server_host={{ groups["cloudera_manager"][0] }}'
+    
+
+- name: Setting database
+  lineinfile:
+    dest: "/etc/cloudera-scm-server/db.properties"
+    regexp: "^#?{{ item.key }}.+$"
+    line: "{{ item.key }}={{ item.value }}"
+    state: "{{ item.state | default('present') }}"
+  with_items: "{{ cloudera_manager_db_config }}"
+
+
+
+- name: Start the Cloudera Manager Server
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  notify:
+    - wait cloudera-scm-server
+  with_items:
+    - cloudera-scm-server
+    - cloudera-scm-agent
+
+# Trigger handler to wait for SCM to startup
+- meta: flush_handlers
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+---
+- name: Prepare services and account
+  hosts: cluster, cloudera_manager
+  roles:
+  - role: cluster/service/oozie_ui
+    
+  

@@ -1,0 +1,83 @@
+
+
+- name: Include OS-specific variables.
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "vars/{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+        - "vars/{{ ansible_os_family }}.yml"
+      skip: true
+
+
+- debug:
+   msg: "{{postgresql_python_library}}"
+
+
+- debug:
+   msg: "{{__postgresql_packages}}"
+
+- name: Install Python PostgreSQL library 
+  package:
+    name: "{{postgresql_python_library}}"
+    state: present
+
+
+- name: Install Python PostgreSQL library (
+  package:
+    name: "{{__postgresql_packages}}"
+    state: present
+
+- name: Ensure PostgreSQL data directory exists
+  ansible.builtin.file:
+    path: "{{ postgresql_data_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0700'
+
+- name: remove old directory for data
+  file:
+    path: "{{ __postgresql_data_dir }}"
+    state: absent
+
+
+- name: Create symlinks for PostgreSQL data directory
+  file:
+    src: "{{ postgresql_data_dir }}"
+    dest: "{{ __postgresql_data_dir }}"
+    state: link
+
+- name: Initialize the database cluster if not already initialized
+  ansible.builtin.command: >
+    initdb
+    -D {{ __postgresql_data_dir }}
+    --locale={{ locale }}
+    --auth-local={{ auth_local }}
+    --auth-host={{ auth_host }}
+  become_user: postgres
+  args:
+    creates: "{{ __postgresql_data_dir }}/PG_VERSION"
+
+
+- name: Configure postgres to listen on all interfaces
+  lineinfile:
+    path: "{{ postgres_config_file }}"
+    line: "listen_addresses = '*'"
+    regexp: '^#?listen_addresses\s+='
+    state: present
+  notify: Restart postgres
+
+- name: Set postgres max_connections
+  lineinfile:
+    path: "{{ postgres_config_file }}"
+    line: "max_connections = {{ max_connections }}"
+    regexp: '^#?max_connections\s+='
+    state: present
+
+
+- name: Ensure PostgreSQL service is running & enabled
+  service:
+    name: "{{ __postgresql_daemon }}"
+    state: restarted
+    enabled: yes
+

@@ -1,0 +1,26 @@
+
+
+
+all_disks_to_clean: >-
+  {{
+    (
+      ( namenode_disks if namenode_disks is defined and ('HDFS' in (enabled_services | default([]))) else []) +
+      ( datanode_disks if datanode_disks is defined and ('HDFS' in (enabled_services | default([]))) else []) +
+      ( kafka_disks if kafka_disks is defined and ('KAFKA' in (enabled_services | default([]))) else []) +
+      ( nifi_provenance_disks if nifi_provenance_disks is defined and ('NIFI' in (enabled_services | default([]))) else []) +
+      ( ozone_datanode_storage_disks if ozone_datanode_storage_disks is defined and ('OZONE' in (enabled_services | default([]))) else []) +
+      ( nifi_content_disks if nifi_content_disks is defined and ('NIFI' in (enabled_services | default([]))) else []) +
+      ([journalnode_disks] if journalnode_disks is defined and ('HDFS' in (enabled_services | default([]))) else []) +
+      ([checkpoint_disks] if checkpoint_disks is defined and ('HDFS' in (enabled_services | default([]))) else []) +
+      ([solr_disk] if solr_disk is defined and ('SOLR' in (enabled_services | default([]))) else []) +
+      ([infra_solr_datadir] if infra_solr_datadir is defined and ('INFRA_SOLR' in (enabled_services | default([]))) else []) +
+      ([zk_datadir] if zk_datadir is defined and ('ZOOKEEPER' in (enabled_services | default([]))) else []) +
+      ([zk_logdir] if zk_logdir is defined and ('ZOOKEEPER' in (enabled_services | default([]))) else []) +
+      ([ozone_om_disk] if ozone_om_disk is defined and ('OZONE' in (enabled_services | default([]))) else []) +
+      ([ozone_scm_disk] if ozone_scm_disk is defined and ('OZONE' in (enabled_services | default([]))) else []) +
+      (ozone_datanode_disk if ozone_datanode_disk is defined and ('OZONE' in (enabled_services | default([]))) else []) +
+      ([ozone_recon_disk] if ozone_recon_disk is defined and ('OZONE' in (enabled_services | default([]))) else []) +
+      ([nifi_flow_disk] if nifi_flow_disk is defined and ('NIFI' in (enabled_services | default([]))) else [])
+    )
+  }}
+

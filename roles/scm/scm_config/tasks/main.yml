@@ -1,0 +1,21 @@
+
+
+- include_tasks: license.yml
+
+- name: Prepare Cloudera Manager settings
+  template:
+    src: "scm.j2"
+    dest: "{{ tmp_dir }}/scm.json"
+
+
+- name: Update Cloudera Manager settings
+  cm_api:
+    endpoint: "/cm/config"
+    method: PUT
+    body_format: json
+    body: "{{ lookup('template', 'scm.j2', convert_data=False) }}"
+    status_code: 200
+    force_basic_auth: yes
+    return_content: yes
+  register: scm_resp
+

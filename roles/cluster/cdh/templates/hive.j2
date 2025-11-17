@@ -1,0 +1,106 @@
+
+{% set service_dependencies = {
+  'HBASE': 'hbase',
+  'YARN': 'mapreduce_yarn',
+  'ATLAS': 'atlas',
+  'RANGER': 'ranger',
+  'ZOOKEEPER': 'zookeeper'
+} %}
+{
+  "refName": "hive",
+  "serviceType": "HIVE",
+  "displayName": "HIVE",
+  "serviceConfigs": [
+    {
+      "name": "hive_metastore_database_host",
+      "value": "{{ databases.HIVE.host }}"
+    },
+    {
+      "name": "hive_metastore_database_port",
+      "value": "{{ databases.HIVE.port }}"
+    },
+    {
+      "name": "hive_metastore_database_type",
+      "value": "{{ databases.HIVE.type | format_database_type }}"
+    },
+    {
+      "name": "hive_metastore_database_name",
+      "value": "{{ databases.HIVE.name }}"
+    },
+    {
+      "name": "hive_metastore_database_user",
+      "value": "{{ databases.HIVE.user }}"
+    },
+    {
+      "name": "hive_metastore_database_password",
+      "value": "{{ databases.HIVE.password }}"
+    },
+    {
+      "name": "hive_warehouse_directory",
+      "value": "{{ hive_warehouse_directory }}"
+    },
+    {
+      "name": "hive_warehouse_external_directory",
+      "value": "{{ hive_warehouse_external_directory }}"
+    },
+    {
+      "name": "ranger_security_safety_valve",
+      "value": "{{ ranger_security_safety_valve_prop | trim }}"
+    },
+    {
+      "name": "ranger_plugin_urlauth_filesystem_schemes",
+      "value": "file:,wasb:,adl:"
+    },
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc|lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "hive-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hive-WEBHCAT-BASE",
+      "roleType": "WEBHCAT", 
+      "base": true
+    }, {
+      "refName": "hive-HIVEMETASTORE-BASE",
+      "roleType": "HIVEMETASTORE",
+      "configs": [
+        {
+          "name": "hive_enable_db_notification",
+          "value": "true"
+        }, 
+        {
+          "name": "hive_metastore_delegation_token_store",
+          "value": "org.apache.hadoop.hive.thrift.DBTokenStore"
+        },
+        {
+          "name": "hive_metastore_java_heapsize",
+          "value": "{{ hive_metastore_java_heapsize | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hive-HIVESERVER2-BASE",
+      "roleType": "HIVESERVER2",
+      "configs": [
+        {
+          "name": "hiveserver2_enable_impersonation",
+          "value": "false"
+        },
+        {
+          "name": "hiveserver2_exec_scratchdir",
+          "value": "{{hiveserver2_exec_scratchdir}}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

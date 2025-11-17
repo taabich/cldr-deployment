@@ -1,0 +1,30 @@
+{% set attr = ca_server_attrs_general | default({}) | combine(ca_server_attrs_host | default({})) %}
+{# CN principal : cn_override > attr.CN > ansible_fqdn #}
+{% set _cn_primary = cn_override | default(attr.CN | default(ansible_fqdn)) %}
+- CN={{ _cn_primary }}
+{# CN secondaire : ansible_fqdn #}
+{% if ansible_fqdn is defined and ansible_fqdn and ansible_fqdn != _cn_primary %}
+- CN={{ ansible_fqdn }}
+{% endif %}
+{# CN tertiaire : adm_fqdn #}
+{% if adm_fqdn is defined and adm_fqdn and adm_fqdn not in [_cn_primary, ansible_fqdn|default('')] %}
+- CN={{ adm_fqdn }}
+{% endif %}
+{% if attr.OU is defined %}
+{% if attr.OU is iterable and attr.OU is not string %}
+{% for ou in attr.OU %}
+- OU={{ ou }}
+{% endfor %}
+{% else %}
+- OU={{ attr.OU }}
+{% endif %}
+{% endif %}
+{% if attr.O is defined %}
+- O={{ attr.O }}
+{% endif %}
+{% if attr.ST is defined %}
+- ST={{ attr.ST }}
+{% endif %}
+{% if attr.C is defined %}
+- C={{ attr.C }}
+{% endif %}

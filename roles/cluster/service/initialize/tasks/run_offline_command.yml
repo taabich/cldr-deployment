@@ -1,0 +1,49 @@
+
+
+
+
+- name: Check if service  exists
+  set_fact:
+    service_exists: >-
+      {{
+        services_installed.json.items | selectattr('type', 'equalto', '{{service_name}}') | list | length > 0
+      }}
+
+
+
+
+
+- name: Get HDFS service status
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services/{{service_name}}"
+    return_content: yes
+    method: GET
+  register: service_status
+  when: service_exists 
+
+- name: check if  if {{service_name}} is STOPPED
+  set_fact:
+    is_service_stopped: "{{ service_status.json.serviceState == 'STOPPED' }}"
+  when: service_exists 
+
+
+- name: /clusters/{{ cluster_name | urlencode() }}/services/{{service_name}}/commands/{{service_command}}
+  cm_api:
+    endpoint: /clusters/{{ cluster_name | urlencode() }}/services/{{service_name}}/{{service_command}}
+    method: POST
+    status_code: 200
+    headers:
+      accept: application/json
+      Content-Type: application/json
+  register: tls_response
+  ignore_errors: yes
+  when: is_service_stopped is defined and is_service_stopped
+
+- name: Show only the JSON response (ignore headers)
+  debug:
+    msg: "{{ tls_response }}"
+    verbosity: 3
+
+
+
+

@@ -1,0 +1,35 @@
+{
+  "refName": "sql_stream_builder",
+  "serviceType": "SQL_STREAM_BUILDER",
+  "displayName": "SQL_STREAM_BUILDER",
+  "serviceConfigs": [
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "sql_stream_builder-STREAMING_SQL_ENGINE-BASE",
+      "roleType": "STREAMING_SQL_ENGINE",
+      "configs": [
+        { "name": "ssb.default.admin.password", "value": "{{ ssb_default_admin_password }}" },
+        { "name": "ssb-conf/application.properties_role_safety_valve", "value": "log.sqlio.restapi = true" },
+        { "name": "ssb.yarn.ui.proxy", "value": "{{ ssb_yarn_ui_proxy }}" },
+        { "name": "ssb.mve.proxy", "value": "{{ ssb_mve_proxy }}" },
+        { "name": "ssb.mve.loadbalancer.proxy", "value": "{{ ssb_mve_loadbalancer_proxy }}" }
+      ],
+      "base": true
+    },
+    {
+      "refName": "sql_stream_builder-MATERIALIZED_VIEW_ENGINE-BASE",
+      "roleType": "MATERIALIZED_VIEW_ENGINE",
+      "configs": [
+        {
+          "name": "ssb.mve.datasource.url",
+          "value": "jdbc:{{ databases.SQL_STREAM_BUILDER.type }}://{{ databases.SQL_STREAM_BUILDER.host }}:{{ {'postgresql':5432,'mysql':3306,'mariadb':3306,'oracle':1521}.get(databases.SQL_STREAM_BUILDER.type, 5432) }}/ssb_mve"
+        },
+        { "name": "ssb.mve.datasource.username", "value": "{{ databases.SQL_STREAM_BUILDER.user }}" },
+        { "name": "ssb.mve.datasource.password", "value": "{{ databases.SQL_STREAM_BUILDER.password }}" },
+        { "name": "ssb-conf/application.properties_role_safety_valve", "value": "log.snapper.restapi = true" }
+      ],
+      "base": true
+    }
+  ]
+}

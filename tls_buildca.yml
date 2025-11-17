@@ -1,0 +1,9 @@
+
+- hosts: ca_server
+  gather_facts: false
+  become: true
+  tasks:
+  - ansible.builtin.import_role:
+      name: security/tls_cabuild
+
+

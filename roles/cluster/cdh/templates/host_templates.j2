@@ -1,0 +1,1 @@
+{{ cluster.host_templates | generate_host_templates(hostvars,kerberos_enabled) | to_nice_json }}

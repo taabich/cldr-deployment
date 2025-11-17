@@ -1,0 +1,30 @@
+{
+  "location": {{ tls_autotls_location | to_json }},
+  "customCA": true,
+  "configureAllServices": {{ (configure_all_services | default(true) | bool) | to_json }},
+  "sshPort": {{ node_sshport | default(22) | int }},
+  {% if free_ipa %}"trustedCaCerts": "/etc/ipa/ca.crt",{% endif %}
+  "userName": {{ (node_username | default('root')) | to_json }},
+  {% if use_password | default(false) %}
+  "password": {{ node_password | to_json }},
+  {% else %}
+  "privateKey": {{ node_key_one_line | to_json }},
+  {% endif %}
+  "interpretAsFilenames": {{ (interpret_as_filenames | default(true) | bool) | to_json }},
+
+  "cmHostCert": {{ (cmca_dir ~ '/' ~ groups['cloudera_manager'][0] ~ '.pem') | to_json }},
+  "cmHostKey":  {{ (cmca_dir ~ '/' ~ groups['cloudera_manager'][0] ~ '.key') | to_json }},
+  "caCert":     {{ (cmca_dir ~ '/' ~ ca_server_chain_cert_name) | to_json }},
+  "keystorePasswd":   {{ (cmca_dir ~ '/keystore.pwd') | to_json }},
+  "truststorePasswd": {{ (cmca_dir ~ '/truststore.pwd') | to_json }},
+
+  "hostCerts": [
+    {% set hg = hosts_group | default('all') %}
+    {% set group_hosts = groups.get(hg, groups['all']) %}
+    {% for machine in group_hosts -%}
+    { "hostname": {{ machine | to_json }},
+      "certificate": {{ (cmca_dir ~ '/' ~ machine ~ '.pem') | to_json }},
+      "key": {{ (cmca_dir ~ '/' ~ machine ~ '.key') | to_json }} }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+  ]
+}

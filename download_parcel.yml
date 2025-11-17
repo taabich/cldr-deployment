@@ -1,0 +1,5 @@
+- name: Download parcels
+  hosts: cluster, cloudera_manager
+  become: yes
+  roles:
+    - scm/scm_download_parcel

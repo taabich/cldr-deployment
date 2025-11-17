@@ -1,0 +1,41 @@
+- name: Vérifier que FreeIPA est installé et que IPA CLI est disponible
+  ansible.builtin.command:
+    cmd: "which ipa"
+  register: ipa_cli_path
+  changed_when: false
+
+- name: S’assurer que la résolution DNS pour le domaine AD fonctionne
+  ansible.builtin.shell: |
+    getent hosts {{ ad_domain }}
+  register: dns_ad_check
+  failed_when: dns_ad_check.rc != 0
+
+- name: Initialiser une session Kerberos pour IPA (kinit) 
+  ansible.builtin.shell: |
+    echo "{{ ipaadmin_password }}" | kinit admin@{{ ipaserver_realm }}
+  args:
+    executable: /bin/bash
+
+- name: Création d’un compte de confiance dans FreeIPA (optionnel)
+  ansible.builtin.command: >
+    ipa trust-add
+      --type=ad
+      --admin={{ ad_admin_user }}
+      --password={{ ad_admin_password }}
+      --realm={{ ad_realm }}
+      --name={{ ad_domain }}
+  register: ipa_trust_add
+  failed_when: ipa_trust_add.rc != 0
+
+- name: Vérifier la mise en place du trust
+  ansible.builtin.command: >
+    ipa trust-show {{ ad_domain }}
+  register: ipa_trust_show
+  failed_when: ipa_trust_show.rc != 0
+
+- name: Afficher le résultat de la configuration du trust
+  ansible.builtin.debug:
+    msg: |
+      Statut du trust FreeIPA → AD :
+      {{ ipa_trust_show.stdout_lines | join("\n") }}
+

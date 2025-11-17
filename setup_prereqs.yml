@@ -1,0 +1,15 @@
+
+- name: Apply OS pre-requisite configurations
+  hosts: cloudera_manager, cluster
+  become: yes
+  tasks:
+  - name: install python3
+    import_role:
+      name:  prereqs/python3
+    tags:
+      - python
+  - name: Upgrdae OS
+    import_role:
+        name: prereqs/os
+    tags:
+    - os

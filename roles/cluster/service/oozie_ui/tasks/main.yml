@@ -1,0 +1,6 @@
+- name: Create oozie user
+  include_tasks: oozie_user.yml
+  when: "'OOZIE' in enabled_services"
+- name: Install lib ext
+  include_tasks: ext.yml
+  when: "'OOZIE' in enabled_services"

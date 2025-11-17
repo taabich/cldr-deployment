@@ -1,0 +1,7 @@
+- name: Deploy MGMT
+  hosts: cms
+  become: true
+  roles:
+
+  - role: scm/mgmt
+

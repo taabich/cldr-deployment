@@ -1,0 +1,8 @@
+- name: Enable kerberos
+  hosts: cloudera_manager
+  become: true
+  vars_files:
+    -  "{{inventory_dir}}/group_vars/kerberos.yaml"
+  roles:
+  - role: scm/enable_kerberos
+

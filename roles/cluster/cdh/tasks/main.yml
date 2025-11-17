@@ -1,0 +1,105 @@
+---
+
+
+
+- name: Detect Cloudera Manager version
+  cm_api:
+    endpoint: /cm/kerberosInfo
+  register: cm_krb_info
+
+- set_fact:
+    kerberos_available: "{{ cm_krb_info.json.kerberized | default(false) }}"
+
+
+
+- name: Detect Cloudera Manager version
+  cm_api:
+    endpoint: /cm/config
+  register: cm_config_info
+
+
+
+- name: Set is_all to true if AUTO_TLS_TYPE is ALL
+  set_fact:
+    autotls_enabled: >-
+      {{
+        (
+          (cm_config_info.json | default({})).get('items', [])
+          | selectattr('name', 'equalto', 'AUTO_TLS_TYPE')
+          | map(attribute='value')
+          | list
+          | first
+          | default('')
+          | upper
+        ) == 'ALL'
+      }}
+
+- debug:
+    msg: "autotls_enabled: {{autotls_enabled }}"
+  
+- set_fact:
+      enable_port: "{{ not old_cdh and  kerberos_enabled and ( tls_enabled or autotls_enabled) }}"
+
+
+
+
+
+- name: Discover product versions from parcel manifests
+  uri:
+    url: "{{ item }}/manifest.json"
+    status_code: 200
+    body_format: json
+    return_content: yes
+  register: manifests
+  with_items: 
+    - "{{ scm_repositories }}"
+
+- set_fact:
+    scm_products: "{{ manifests.results | map(attribute='json') | list | json_query('[*].parcels[0].parcelName') | map('regex_replace', '-[a-z0-9]+.parcel$','') | list }}"
+
+
+
+- name: Detect Cloudera Manager version
+  cm_api:
+    endpoint: /cm/version
+  register: cm_version_response
+
+- set_fact:
+    cloudera_manager_version: "{{ cm_version_response.json.version }}"
+
+- name: Find existing clusters
+  cm_api:
+    endpoint: /clusters?clusterType=any
+  register: clusters_response
+
+
+- set_fact:
+    existing_clusters: []
+
+- debug:
+    msg: "{{clusters_response.json}}"
+
+- name: Add items to list dynamically
+  set_fact:
+    existing_clusters: "{{ existing_clusters + [item.name] }}"
+  loop: "{{ clusters_response.json['items'] | list }}"
+  when:  clusters_response.json is defined
+
+
+
+
+# If you get failures here check in CM to ensure you don't have empty clusters or other oddities
+# Add deploy_only="base" to select base from several clusters in clusters.yml
+- name: Create base clusters
+  include_tasks: create_base.yml
+  loop: "{{ clusters }}"
+  loop_control:
+    loop_var: _cluster
+    label: "{{ cluster.name }}"
+  vars:
+    cluster: "{{ default_cluster_base | combine(_cluster) }}"
+  when:
+    - cluster.type | default(default_cluster_type) == 'base'
+    - cluster.name not in existing_clusters
+    - (deploy_only is defined and 'base' in deploy_only) or deploy_only is not defined
+    

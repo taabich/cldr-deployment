@@ -2,11 +2,11 @@
 
 
 - import_playbook: ssh_known_hosts.yml
-- import_playbook: deploy_freeipa_server.yml
-  when: freeipa_install | bool
-- import_playbook: deploy_freeipa_client.yml
-  when: freeipa_client_install | bool
-- import_playbook: deploy_fix_krb5.yml
+#- import_playbook: deploy_freeipa_server.yml
+#  when: freeipa_install | bool
+#- import_playbook: deploy_freeipa_client.yml
+#  when: freeipa_client_install | bool
+#- import_playbook: deploy_fix_krb5.yml
 - import_playbook: deploy_repos.yml
 - import_playbook: deploy_rbdms.yml 
   when: database_install | bool
@@ -14,11 +14,14 @@
   when: database_install | bool
 - import_playbook : deploy_rbdms_client.yml 
 - import_playbook: setup_prereqs.yml
-- import_playbook: tls_prepare.yml
 - import_playbook: deploy_scm.yml
 - import_playbook: deploy_agents.yml
 - import_playbook: deploy_mgmt.yml
-- import_playbook: cmd_restart_scm_agents.yml
+#- import_playbook: cmd_restart_scm.yml
+#- import_playbook: cmd_restart_agents.yml
+- import_playbook: prepare_services.yml
 - import_playbook: install_cluster.yml
-- import_playbook: deploy_autotls.yml
-- import_playbook: cmd_restart_scm_agents.yml
+#- import_playbook: prepare_tls.yml
+#- import_playbook: deploy_autotls.yml
+#- import_playbook: cmd_scm_restart.yml
+#- import_playbook: cmd_agents_restart.yml

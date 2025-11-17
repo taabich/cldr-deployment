@@ -1,0 +1,21 @@
+
+- name: Playbook to configure IPA server
+  hosts: krb5_server
+  become: true
+  vars:
+    conf_dir: /etc/freeipa/conf
+    local_accounts: []
+  tasks:
+
+    - name: Register host with FreeIPA services
+      ansible.builtin.import_role:
+        name: security/ipa_server
+
+
+- name: Setup FreeIPA clients
+  hosts: cloudera_manager:cluster
+  become: yes
+  roles:
+
+    - role: security/ipa_client
+      state: present

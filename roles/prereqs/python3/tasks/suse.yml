@@ -1,0 +1,124 @@
+# Copyright 2021 Cloudera, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+
+
+
+- name: Install python 3
+  package:
+    name: python3
+    state: present
+  when: install_python3 == true and install_python3_8 == false
+
+- name: Install pip3
+  package:
+    name: python3-pip
+    state: present
+  when: install_python3 == true and install_python3_8 == false
+
+
+# In case of 7.1.8 or above, make a custom installation of python 3.8 to be able to use Hue
+
+- name: Install Required packages for Python 3.8 installation 
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages_to_install_for_python_3_8 }}"
+  when: install_python3_8 == true
+
+
+# Openssl setup for Suse
+- name: Download Openssl package for Suse distribution
+  get_url:
+    url: openssl-1.0.2o.tar.gz
+    dest: /opt/openssl-1.0.2o.tar.gz
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+- name: Unarchive Openssl tar.gz for Suse distribution
+  unarchive:
+    src: /opt/openssl-1.0.2o.tar.gz
+    dest: /opt/openssl-1.0.2o/
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+- name: Configure & Install Openssl for Suse distribution
+  shell: |
+    ./configure --enable-shared
+    make
+    make install
+  args:
+    chdir: /opt/openssl-1.0.2o/
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+- name: Copy openssl compiled lib files for Suse distribution
+  copy:
+    src: "{{ item }}"
+    dest: /lib/
+  with_items: "{{ openssl_lib_files }}"
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+- name: Delete openssl tar gz for Suse distribution
+  file:
+    path: /opt/openssl-1.0.2o.tar.gz
+    state: absent
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+# Install python 3.8
+- name: Download Python 3.8 package
+  get_url:
+    url: "{{ python_3_8_url }}"
+    dest: /opt/Python-3.8.12.tgz
+  when: install_python3_8 == true
+
+- name: Unarchive Python tar.gz
+  unarchive:
+    src: /opt/Python-3.8.12.tgz
+    dest: /opt/
+  when: install_python3_8 == true
+
+- name: Configure & Install Python 3.8 
+  shell: |
+    cd /opt/Python-3.8.12/
+    ./configure --enable-shared
+    make
+    make install
+  when: install_python3_8 == true
+
+- name: Copy python lib files
+  include_tasks: python_lib_file_copy.yml
+  when: install_python3_8 == true
+
+- name: Delete openssl compiled lib files for Suse distribution
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ openssl_lib_files }}"
+  when: install_python3_8 == true and ansible_os_family == "Suse"
+
+
+
+- name: Install Required packages for Psycopg2 with Python 3.8 
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages_for_psycopg2_3_8 }}"
+  when: database_type == 'postgresql' and install_python3_8 == true
+
+- name: Install psycopg2 2.9.3
+  shell: |
+    /usr/local/bin/pip3.8 install psycopg2==2.9.3 --ignore-installed
+  environment:
+    PATH: "{{ postgresql_install_path }}:{{ ansible_env.PATH }}"
+  when: database_type == 'postgresql' and install_python3_8 == true
+  ignore_errors: true

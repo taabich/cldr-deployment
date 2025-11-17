@@ -1,0 +1,39 @@
+[sssd]
+services = nss, pam, sudo, ssh
+config_file_version = 2
+domains = {{ ipaserver_realm }}
+private_keyring = False
+
+[nss]
+homedir_substring = /home
+
+[pam]
+pam_verbosity = 1
+pam_id_timeout = 10
+pam_mkhomedir = True
+
+[domain/{{ ipaserver_realm }}]
+id_provider = ipa
+auth_provider = ipa
+chpass_provider = ipa
+access_provider = ipa
+sudo_provider = ipa
+ssh_provider = ipa
+
+ipa_domain = {{ ipaserver_realm }}
+ipa_server = {{ ipa_server }}
+ipa_hostname = {{ ansible_fqdn }}
+krb5_realm = {{ ipaserver_realm|upper }}
+
+cache_credentials = True
+enumerate = True
+override_homedir = /home/%u
+default_shell = /bin/bash
+
+# If you don't want full enumeration
+# enumerate = False
+
+
+passwd:     sss files systemd
+shadow:     sss files
+group:      sss files systemd

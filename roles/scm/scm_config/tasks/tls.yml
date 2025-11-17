@@ -1,0 +1,18 @@
+- name: Check Cloudera Manager version
+  cm_api:
+    endpoint: /cm/version
+  register: response
+
+- fail:
+    msg: This playbook requires Cloudera Manager 7.1+
+  when: response.json.version is version('7.1', '<')
+
+- name: Check if password or key is used to connect to machines
+  set_fact:
+    user_password: "{{ true if node_password is defined and node_password|length > 0 else false }}"
+
+- name: Enable Auto-TLS
+  cm_api:
+    endpoint: /cm/commands/generateCmca
+    method: POST
+    body: "{{ lookup('template', 'tls.j2', convert_data=False) }}"

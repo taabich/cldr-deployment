@@ -1,0 +1,85 @@
+# Copyright 2023 Cloudera, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+
+
+
+
+- set_fact:
+    too_few_brokers: "{{ cluster.host_templates | count_service_role(hostvars,'KAFKA','KAFKA_BROKER') < 2 }}"
+
+
+- set_fact:
+    ha_enabled: "{{ cluster.host_templates | count_service_role(hostvars,'HDFS','JOURNALNODE') >= 3 }}"
+
+- set_fact:
+    knox_proxyhosts: "{{ cluster.host_templates | list_host_byservice(hostvars,'KNOX','KNOX_GATEWAY')  }}"
+
+- set_fact:
+    zk_hosts: "{{ cluster.host_templates | list_host_byservice(hostvars,'ZOOKEEPER','SERVER')  }}"
+
+- set_fact:
+    zk_hosts_string: "{{zk_hosts | join(':2181,')}}:2181"   
+
+
+- debug:
+    msg: "TOO FEW KAFKA BROKER: {{ too_few_brokers}}"
+
+- debug:
+    msg: "HA: {{ ha_enabled}}"
+
+- set_fact:
+    databases: "{{ database_defaults | combine(cluster.databases | default({}), recursive=True) }}"
+
+- debug:
+   var: enabled_services
+
+- name: Generate cluster template file
+  template:
+    src: base.j2
+    dest: /tmp/cluster_template_{{ cluster.name | replace(' ','_') }}.json
+    mode: 0600
+  #when: cluster_template_dry_run
+
+
+- name: Import cluster template for {{ cluster.name }}
+  cm_api:
+    endpoint: /cm/importClusterTemplate?addRepositories=false
+    method: POST
+    body: "{{ lookup('template', 'base.j2', convert_data=False) }}"
+  register: cluster_template_result
+  when: not cluster_template_dry_run
+
+- name: Find cluster template command URL for troubleshooting
+  set_fact:
+    command_details_url: "{{ cluster_template_result.url | regex_replace('/api/.*','/cmf/command/' ~ cluster_template_result.json.id | string ~ '/details' ) }}"
+  when: cluster_template_result.failed and 'id' in cluster_template_result.json
+
+
+
+- name: Fail because of unsuccessful cluster template import
+  fail:
+    msg: >
+      Cluster template import failed.
+      Result message: {{ cluster_template_result.json.message }}
+  when: cluster_template_result.failed and command_details_url is not defined
+
+- name: Fail because of unsuccessful cluster template import
+  fail:
+    msg: >
+      Cluster template import failed.
+      Result message: {{ cluster_template_result.json.resultMessage | default(cluster_template_result.json.message) }}
+      Check {{ command_details_url }} for further troubleshooting information."
+  when: cluster_template_result.failed and command_details_url is defined

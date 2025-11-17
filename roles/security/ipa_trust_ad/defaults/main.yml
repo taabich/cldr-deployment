@@ -1,0 +1,26 @@
+---
+# defaults file for ipaclient
+
+
+
+ipaserver_domain: "{{ ansible_fqdn | extract_domain  }}"
+
+ipa_admin_user: "{{krb5_admin}}"
+ipadm_password: "{{krb5_password}}"
+ipaadmin_password:  "{{krb5_password}}"
+ipaserver_realm: "{{ krb5_realm }}"
+
+
+
+# --- Variables Active Directory ---
+
+
+ad_domain: "{{ krb5_domain | default(krb5_realm | lower) }}"
+ad_realm: "{{ ad_domain | upper }}"
+ad_admin_user: "{{ krb5_admin | default('Administrator')}}"
+ad_admin_password: "{{ krb5_password }}"
+krb5_kdc_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
+
+
+# Nom sous lequel FreeIPA se présentera dans AD (optionnel)
+ipa_trust_account: "ipa_trust_account"

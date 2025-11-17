@@ -1,0 +1,39 @@
+
+
+
+
+# LDAP DN info
+ipaserver_domain: "{{ krb5_domain}}"       # IPA domain (must match krb5_domain)
+ipaadmin_password: "{{ krb5_password }}" 
+
+
+
+base_dc: "intra"
+base_dn: "dc=ozonemta,dc=cloudera,dc=intra"
+user_dn: "cn=users,cn=accounts,{{ base_dn }}"
+group_dn: "cn=groups,cn=accounts,{{ base_dn }}"
+ldap_bind_dn: "uid={{krb5_admin}},{{ user_dn }}"
+
+
+
+auth_provider:
+    ldap_url: "ldaps://{{ ('krb5_server' in groups and groups['krb5_server'])| ternary(groups['krb5_server'][0], (krb5_kdc_host is defined and krb5_kdc_host) |ternary(krb5_kdc_host,None))}}:636"
+    ldap_base_dn: "{{ base_dn }}"
+    ldap_bind_user_dn: "{{ ldap_bind_dn }}"
+    ldap_bind_password: "{{ ipaadmin_password | default(lookup('env', 'IPA_PASSWORD', default='Undefined')) }}"
+    ldap_search_base:
+      user: "{{ user_dn }}"
+      group: "{{ group_dn }}"
+      common: "{{ base_dn }}"
+    ldap_object_class:
+      user: "person"
+      group: "groupofnames"
+    ldap_search_filter:
+     user: uid={0}
+     member: (member={0})
+    ldap_attribute:
+      user: "uid"
+      group: "cn"
+      member: "member"
+      user_member: "memberOf"
+    type: LDAP

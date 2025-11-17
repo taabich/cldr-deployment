@@ -1,0 +1,7 @@
+
+- name: Install Cloudera Manager Agent on all nodes
+  hosts: cluster
+  roles:
+
+    - role: extras/clean_disks
+      state: present

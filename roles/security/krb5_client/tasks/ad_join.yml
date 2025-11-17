@@ -1,0 +1,74 @@
+# Copyright 2023 Cloudera, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+- name: Include variables
+  include_vars:
+    file: "{{ ansible_os_family }}.yml"
+
+- name: Install KRB5 client libraries
+  ansible.builtin.package:
+    lock_timeout: "{{ (ansible_os_family == 'RedHat') | ternary(60, omit) }}"
+    name: "{{ krb5_packages }}"
+    state: present
+
+- name: Create krb5.conf
+  template:
+    src: "{{ krb5_conf_template | default('krb5.conf.j2') }}"
+    dest: /etc/krb5.conf
+    backup: yes
+  when: not (skip_krb5_conf_distribution | default(False))
+
+- name: Join AD
+  block:
+    - name: Install packages
+      package:  
+        name: "{{ ad_packages }}"
+        state: present
+        
+
+    - name: pexpect is required to handle pwd prompt
+      pip: name=pexpect
+
+
+    - name: pexpect is required to handle pwd prompt
+      set_fact: 
+          shortname_to_add: "{{ ad_domain_controller.split('.')[0] }}"
+
+    - name: "Add AD Controller entry to /etc/hosts if missing"
+      become: true
+      shell: |
+        if ! grep -qE "^{{ ad_ip }}[[:space:]]+{{ ad_domain_controller }}" /etc/hosts; then
+          echo "{{ ad_ip }}    {{ ad_domain_controller }}    {{ ad_domain_controller.split('.')[0] }}" >> /etc/hosts
+        fi
+      args:
+        executable: /bin/bash
+      when: ad_ip is defined and  ad_ip != ""
+
+    - name: Join the host to AD using adcli + expect
+      expect:
+        command: >
+          adcli join
+            --domain={{ ad_domain }}
+            --domain-controller={{ ad_domain_controller }}
+            --login-user={{ ad_admin_user }}
+            -W
+        responses:
+          'Password for .*@MTA.LOCAL:': "{{ ad_admin_password }}"
+        echo: yes
+      register: adcli_join
+      changed_when: "'already joined' not in adcli_join.stdout"
+  when:  (ad_enroll | default(False))
+  
+  

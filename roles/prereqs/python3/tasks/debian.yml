@@ -1,0 +1,65 @@
+# Copyright 2021 Cloudera, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+
+
+
+- name: Install python 3
+  package:
+    name: python3
+    state: present
+  when: install_python3 == true and install_python3_8 == false
+
+- name: Install pip3
+  package:
+    name: python3-pip
+    state: present
+  when: install_python3 == true and install_python3_8 == false
+
+
+
+# In case of 7.1.8 or above, make a custom installation of python 3.8 to be able to use Hue
+
+- name: Install Required packages for Python 3.8 installation 
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages_to_install_for_python_3_8 }}"
+
+
+- name: Install openssl package (can fail)
+  package:
+    name: openssl-devel
+    state: present
+  ignore_errors: true
+
+
+
+
+
+- name: Install Required packages for Psycopg2 with Python 3.8 
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages_for_psycopg2_3_8 }}"
+  when: database_type == 'postgresql' and install_python3_8 == true
+
+- name: Install psycopg2 2.9.3
+  shell: |
+    /usr/local/bin/pip3.8 install psycopg2==2.9.3 --ignore-installed
+  environment:
+    PATH: "{{ postgresql_install_path }}:{{ ansible_env.PATH }}"
+  when: database_type == 'postgresql' and install_python3_8 == true
+  ignore_errors: true

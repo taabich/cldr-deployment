@@ -1,0 +1,93 @@
+- name: Configure LVM and move /var and /opt
+  hosts: ha_cluster
+  become: true
+  tasks:
+    - name: Create 160G partition on /dev/sda
+      shell: "echo -e 'n\np\n\n\n+160G\nw' | fdisk /dev/sda"
+
+    - name: Create Volume Group
+      command: vgcreate cdp_vg /dev/sda4
+
+    - name: Create Logical Volume for /opt
+      command: lvcreate -L 50G -n opt_lv cdp_vg
+
+    - name: Create Logical Volume for /var
+      command: lvcreate -L 50G -n var_lv cdp_vg
+
+    - name: Format /var LV with ext4
+      filesystem:
+        fstype: ext4
+        dev: /dev/cdp_vg/var_lv
+
+    - name: Format /opt LV with ext4
+      filesystem:
+        fstype: ext4
+        dev: /dev/cdp_vg/opt_lv
+
+    - name: Create mount point for new /var
+      file:
+        path: /mnt/newvar
+        state: directory
+
+    - name: Mount new /var
+      mount:
+        path: /mnt/newvar
+        src: /dev/cdp_vg/var_lv
+        fstype: ext4
+        state: mounted
+
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Sync current /var to new location
+      command: rsync -aAXv /var/ /mnt/newvar/
+
+    - name: Backup old /var
+      command: mv /var /var.bak
+
+    - name: Recreate /var directory
+      file:
+        path: /var
+        state: directory
+
+
+    - name: Mount /var
+      mount:
+        path: /var
+        src: /dev/cdp_vg/var_lv
+        fstype: ext4
+        state: mounted
+
+    - name: Mount /opt
+      mount:
+        path: /opt
+        src: /dev/cdp_vg/opt_lv
+        fstype: ext4
+        state: mounted
+
+    - name: Reload systemd daemon again
+      systemd:
+        daemon_reload: true
+
+    - name: Unmount /mnt/newvar
+      mount:
+        path: /mnt/newvar
+        state: unmounted
+    - name: Remove /mnt/newvar entry from /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^.*\s+/mnt/newvar\s+.*$'
+        state: absent
+    
+    - name: Unmount old OLED directory
+      command: umount /var.bak/oled
+      ignore_errors: yes
+
+    - name: Mount OLED
+      mount:
+        path: /var/oled
+        fstype: ext4
+        state: mounted
+      ignore_errors: yes

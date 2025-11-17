@@ -1,0 +1,28 @@
+
+
+- name: Install RDBMS
+  hosts: db_server
+  become: yes
+  tasks:
+    - name: Load database definition
+      import_role:
+        name: config/db_common
+      tags:
+        - database
+    
+    - set_fact:
+        databases: "{{ database_defaults | combine(cluster_databases | default({}), recursive=True) }}"
+
+    - name: create database  MGMT
+      import_role:
+        name: db/databases
+      tags:
+        - database
+   
+    - set_fact:
+        databases: "{{ databases_cm_svcs | combine(mgmt_databases | default({}), recursive=True) }}"
+    - name: Create database CDP Runtime  
+      import_role:
+        name:  db/databases
+      tags:
+        - database

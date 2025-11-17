@@ -1,0 +1,21 @@
+{
+  "items" : [ 
+    {
+      "name": "parcel_max_upload",
+      "value": "20"
+    },
+    {
+      "name": "parcel_distribute_rate_limit_kbs_per_second",
+      "value": "204800"
+    },
+    {
+      "name": "mt_config_generation_parallelism",
+      "value": "12"
+    },
+    {
+      "name" : "REMOTE_PARCEL_REPO_URLS",
+      "value" : {% set repo_j = joiner(",") %}
+      "{% for repo in scm_repositories %}{{ repo_j() }}{{ repo }}{% endfor %}"
+    }
+  ]
+}

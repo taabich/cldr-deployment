@@ -1,0 +1,79 @@
+- name: Ensure extra groups exist
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: >-
+    {{
+      local_accounts
+      | selectattr('extra_groups', 'defined')
+      | map(attribute='extra_groups')
+      | flatten
+      | unique
+    }}
+  async: 30
+  poll: 0
+  when: local_accounts is defined
+
+- name: Create users
+  user:
+    name: "{{ item.user }}"
+    comment: "{{ item.comment | default('') }}"
+    home: "{{ item.home }}"
+    create_home: no
+    shell: /sbin/nologin
+    groups: "{{ item.extra_groups | default([]) | join(',') }}"
+    state: present
+  loop: "{{ local_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+  async: 60
+  poll: 0
+
+- name: Ensure home directories exist
+  file:
+    path: "{{ item.home }}"
+    state: directory
+    owner: "{{ item.user }}"
+    group: "{{ (item.extra_groups | default([]) | first) | default(item.user) }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ local_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+  async: 30
+  poll: 0
+
+- name: Set keystore ACL
+  ansible.posix.acl:
+    path: "{{ keystore_dir }}"
+    entity: "{{ item.user }}"
+    etype: user
+    permissions: rx
+    state: present
+  when: item.keystore_acl | default(false)
+  loop: "{{ local_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+
+- name: Set key ACL
+  ansible.posix.acl:
+    path: "{{ key_dir }}"
+    entity: "{{ item.user }}"
+    etype: user
+    permissions: rx
+    state: present
+  when: item.key_acl | default(false)
+  loop: "{{ local_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"
+
+- name: Set key password ACL
+  ansible.posix.acl:
+    path: "{{ key_password_dir }}"
+    entity: "{{ item.user }}"
+    etype: user
+    permissions: rx
+    state: present
+  when: item.key_password_acl | default(false)
+  loop: "{{ local_accounts }}"
+  loop_control:
+    label: "{{ item.user }}"

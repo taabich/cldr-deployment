@@ -1,0 +1,11 @@
+# Setup/install tasks.
+
+- name: Include database type specific variables
+  include_vars:
+    file: postgresql.yml
+
+- include_tasks: install_db.yaml
+
+- name: Fix UTF-8 template
+  include_tasks:
+    file: template_fix.yml

@@ -1,0 +1,9 @@
+---
+- name: Deploy kerberos clients
+  hosts: kerberos
+  roles:
+    - role: security/krb5_client
+    - role: security/krb5_sssd
+
+    
+  

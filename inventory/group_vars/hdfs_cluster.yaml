@@ -1,0 +1,96 @@
+
+
+cluster_name: "medium"
+cldr_versions:
+  cm:
+    version: "7.13.1.500"
+    os: "redhat9"
+  cdh:
+    version: "7.3.1.500"
+    parcel: "CDH-7.3.1-1.cdh7.3.1.p500.71942734-el9.parcel"
+  # spark3:
+  #   version: "3.3.7191000.9"
+  #   parcel: "SPARK3-3.3.2.3.3.7191000.9-2-1.p0.65266237-el9.parcel"
+  # cfm:
+  #   version: "2.1.7.2000-69"
+  #   parcel: "CFM-2.1.7.2000-69-el9.parcel"
+  #   csds:
+  #     - "NIFIREGISTRY-1.28.1.2.1.7.2000-69.jar"
+  #     - "NIFI-1.28.1.2.1.7.2000-69.jar"
+  # csa:
+  #   version: "1.15.2.0"
+  #   flink_jar: "FLINK-1.20.1-csa1.15.2.0-67992430.jar"
+  #   ssb_jar:   "SQL_STREAM_BUILDER-1.20.1-csa1.15.2.0-67992430.jar"
+  #   flink_parcel: "FLINK-1.20.1-csa1.15.2.0-67992430-el9.parcel"
+ # cluster_topology.yml
+
+clusters:
+  - name: "{{ cluster_name | default('medium') }}"
+    type: base
+    host_templates:
+      Master:
+        HDFS: [NAMENODE, JOURNALNODE, FAILOVERCONTROLLER, GATEWAY]
+        YARN: [RESOURCEMANAGER,  GATEWAY]
+        ZOOKEEPER: [SERVER]
+        HBASE: [MASTER, HBASETHRIFTSERVER, HBASERESTSERVER, GATEWAY]
+        HIVE: [GATEWAY]
+        INFRA_SOLR: [SOLR_SERVER]
+#        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER, GATEWAY]
+
+      Master3:
+        HDFS: [JOURNALNODE, GATEWAY]
+        ZOOKEEPER: [SERVER]
+        SPARK3_ON_YARN: [SPARK3_YARN_HISTORY_SERVER, GATEWAY]
+        HIVE: [GATEWAY]
+        INFRA_SOLR: [SOLR_SERVER]
+        QUEUEMANAGER: [QUEUEMANAGER_STORE,QUEUEMANAGER_WEBAPP]
+        YARN: [JOBHISTORY, GATEWAY]
+
+      Utility:
+#        KAFKA: [CRUISE_CONTROL_SERVER, GATEWAY]
+#        STREAMS_MESSAGING_MANAGER: [STREAMS_MESSAGING_MANAGER_UI, STREAMS_MESSAGING_MANAGER_SERVER]
+#        STREAMS_REPLICATION_MANAGER: [STREAMS_REPLICATION_MANAGER_SERVICE, STREAMS_REPLICATION_MANAGER_DRIVER]
+        HIVE: [HIVEMETASTORE, GATEWAY]
+        IMPALA: [CATALOGSERVER, STATESTORE]
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_RMS: [RANGER_RMS_SERVER]
+        ATLAS: [ATLAS_SERVER]
+        YARN:  [GATEWAY]
+        HDFS:  [GATEWAY]
+        HBASE: [GATEWAY]
+
+
+
+      Gateway:
+        HUE: [HUE_SERVER, HUE_LOAD_BALANCER]
+        HIVE_ON_TEZ: [HIVESERVER2, GATEWAY]
+        KNOX: [KNOX_GATEWAY]
+        TEZ: [GATEWAY]
+        LIVY_FOR_SPARK3: [LIVY_SERVER_FOR_SPARK3]
+        YARN: [GATEWAY]
+        HIVE: [GATEWAY]
+        HDFS: [GATEWAY]
+        HBASE: [GATEWAY]
+
+      Worker_kakfa:
+        HDFS: [DATANODE, GATEWAY]
+        YARN: [NODEMANAGER, GATEWAY]
+        IMPALA: [IMPALAD]
+        KAFKA: [KAFKA_BROKER, KAFKA_CONNECT, GATEWAY]
+        HBASE: [REGIONSERVER, GATEWAY]
+        TEZ: [GATEWAY]
+        SPARK3_ON_YARN: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+
+
+      Worker:
+        HDFS: [DATANODE, GATEWAY]
+        YARN: [NODEMANAGER, GATEWAY]
+        IMPALA: [IMPALAD]
+        HBASE: [REGIONSERVER, GATEWAY]
+        TEZ: [GATEWAY]
+        SPARK3_ON_YARN: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+
+
+

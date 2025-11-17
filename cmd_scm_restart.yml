@@ -1,0 +1,5 @@
+    
+- hosts: cloudera_manager
+  become: yes
+  roles:
+  - role: operations/restart_scm

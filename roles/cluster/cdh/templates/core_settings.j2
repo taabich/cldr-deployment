@@ -1,0 +1,20 @@
+{
+  "refName": "core_settings",
+  "serviceType": "CORE_SETTINGS",
+  "displayName": "CORE_SETTINGS",
+  "serviceConfigs": [
+      {
+      "name": "core_site_safety_valve",
+      "value": "<property><name>fs.defaultFS</name><value>{{fs_defaultfs}}</value></property>"
+    }
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "core_settings-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+  ]
+}

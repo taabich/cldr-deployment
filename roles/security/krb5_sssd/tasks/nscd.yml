@@ -1,0 +1,36 @@
+- name: Set enable-cache hosts to yes
+  ansible.builtin.lineinfile:
+    path: /etc/nscd.conf
+    regexp: '^enable-cache\s+hosts\s+'
+    line: 'enable-cache hosts yes'
+    create: yes
+    backup: yes
+
+- name: Set enable-cache passwd to no
+  ansible.builtin.lineinfile:
+    path: /etc/nscd.conf
+    regexp: '^enable-cache\s+passwd\s+'
+    line: 'enable-cache passwd no'
+
+- name: Set enable-cache group to no
+  ansible.builtin.lineinfile:
+    path: /etc/nscd.conf
+    regexp: '^enable-cache\s+group\s+'
+    line: 'enable-cache group no'
+
+- name: Set enable-cache netgroup to no
+  ansible.builtin.lineinfile:
+    path: /etc/nscd.conf
+    regexp: '^enable-cache\s+netgroup\s+'
+    line: 'enable-cache netgroup no'
+
+- name: Set enable-cache services to no
+  ansible.builtin.lineinfile:
+    path: /etc/nscd.conf
+    regexp: '^enable-cache\s+services\s+'
+    line: 'enable-cache services no'
+
+- name: Restart nscd to apply changes
+  ansible.builtin.service:
+    name: nscd
+    state: restarted

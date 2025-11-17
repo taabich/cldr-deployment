@@ -1,0 +1,34 @@
+
+
+- fail:
+    msg: local_keys_dir not defined
+  when: local_keys_dir is undefined or local_keys_dir == ""
+
+- name: Check if file {{local_keys_dir}} exists
+  local_action: stat path={{ local_keys_dir }}
+  register: local_src_check
+  run_once: true
+
+- file:
+    path: "{{ local_keys_dir }}" 
+    state: directory
+  when: not local_src_check.stat.exists
+  run_once: true
+
+
+
+- find: paths="{{ base_dir_security_pki }}/" recurse=no patterns="*.key"
+  register: files_to_copy
+
+
+- name: Bring Keys back to controller
+  become: true
+  fetch:
+    src: "{{  item_ssl_key.path }}"
+    dest: "{{ local_keys_dir }}/"
+    flat: yes
+  with_items:
+   - "{{ files_to_copy.files }}"
+  loop_control:
+     label: "{{ item_ssl_key.path }}"
+     loop_var: item_ssl_key

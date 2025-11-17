@@ -1,0 +1,42 @@
+# Copyright 2022 TOSIT.IO
+# SPDX-License-Identifier: Apache-2.0
+
+---
+# Enable "powertools" repo for Rocky 8 and "plus" for Rocky 9
+
+
+ldap_rootpw: "{{ krb5_password }}"
+ldap_suffix: "{{ base_dn }}"
+ldap_rootdn: "{{ ldap_bind_dn }}"
+ldap_users_base: "ou=users,{{ ldap_suffix }}"
+ldap_groups_base: "ou=groups,{{ ldap_suffix }}"
+
+
+
+
+ipaserver_domain: "{{ ansible_fqdn | extract_domain  }}"
+ipaserver_realm: "{{ krb5_realm }}"
+ipa_server: "{{ groups['krb5_server']| first }}"
+
+# client
+ldap_server: "{{ groups['krb5_server']| first }}"
+ldap_admin_dn: "{{ ldap_rootdn }}"
+ldap_admin_dn_password: "{{ krb5_password }}"
+
+ldap_groups: []
+
+
+ldap_users: []
+
+kdc_host: "{{ groups['krb5_server']| first }}"
+
+override_gid: -1
+
+
+
+
+ad_domain: "{{ krb5_domain | default(krb5_realm | lower) }}"
+ad_realm: "{{ ad_domain | upper }}"
+ad_admin_user: "{{ krb5_admin | default('Administrator')}}"
+ad_admin_password: "{{ krb5_password }}"
+krb5_kdc_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"

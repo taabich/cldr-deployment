@@ -1,0 +1,34 @@
+
+{% set service_dependencies = {
+    'HDFS': 'hdfs',
+    'HBASE': 'hbase',
+    'ZOOKEEPER': 'zookeeper'
+  } 
+%}
+{
+  "refName": "phoenix",
+  "serviceType": "PHOENIX",
+  "displayName": "PHOENIX",
+  "serviceConfigs": [
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+   
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "phoenix-PHOENIX_QUERY_SERVER-BASE",
+      "roleType": "PHOENIX_QUERY_SERVER",
+      "configs": [
+        {
+          "name": "phoenix_queryserver_max_heap_size",
+          "value": "{{ phoenix_queryserver_max_heap_size | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }
+  ]
+}

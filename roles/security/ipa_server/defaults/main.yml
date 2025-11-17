@@ -1,0 +1,81 @@
+# *********** default config directory for freeipa (not tested when changed) ********
+conf_dir: /etc/freeipa/conf
+# ansible_python_interpreter: /usr/bin/python
+### packages ###
+ipaserver_install_packages: yes
+### server ###
+ipaserver_setup_adtrust: yes
+ipaserver_setup_kra: no
+ipaserver_setup_dns: no
+ipaserver_no_hbac_allow: no
+ipaserver_no_pkinit: no
+ipaserver_no_ui_redirect: no
+ipaserver_mem_check: yes
+ipaserver_random_serial_numbers: false
+ipaserver_forwarders: no
+ipaserver_allow_overlap: no
+security_ssl_external_ca: no
+
+
+setup_dns: no
+ipaserver_auto_forwarders: no
+### firewalld ###
+ipaserver_setup_firewalld: yes
+# *********** directory on the remote host where certs should be available   ********
+
+security_ssl_local: True     # by default we consider the certs are on the remote host already
+# *********** create iptables rules when it is enabled ********
+iptables: False
+ipaserver_setup_default_resolv: False
+ipa_admin_user: "{{krb5_admin}}"
+ipadm_password: "{{krb5_password}}"
+ipaadmin_password:  "{{krb5_password}}"
+ipamanager_password: "{{ ipaadmin_password }}"
+ipaserver_domain: "{{ ansible_fqdn | extract_domain  }}"
+ipaserver_realm: "{{ krb5_realm }}"
+ipa_admins_group: admins
+# *********** identities management ********
+
+freeipa_superuser: cldrp00 
+
+
+manage_identities: true
+identities:
+  - name: cloudera
+    group:
+      name: cloudera
+      system: True
+    user:
+      name: cloudera
+      system: True
+      groups: []
+      comment: cloudera User
+      gid: cloudera
+      uid: 5000
+      home: /usr/share/cloudera
+      shell: False
+# by default use all service below
+services:
+  - LDAP
+  - KERBEROS
+  - WEBUI
+  - BIND
+  - NTP
+options:
+  LDAP:
+    port: 389
+    ssl_port: 636
+    ssl_enabled: true
+  KERBEROS:
+    kdc_tcp_port: 88
+    kdc_udp_port: 88
+    kadmin_tcp_port: 464
+    kadmin_udp_port: 464
+  WEBUI:
+    port: 80
+    ssl_port: 443
+  BIND:
+    port: 53
+    ssl_port: 53
+  NTP:
+    port: 123

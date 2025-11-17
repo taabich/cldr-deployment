@@ -1,0 +1,119 @@
+{% set service_dependencies = {
+  'ZOOKEEPER': 'zookeeper',
+  'QUEUEMANAGER': 'queuemanager',
+  'RANGER': 'ranger'
+} %}
+
+{
+  "refName": "yarn",
+  "serviceType": "YARN",
+  "displayName": "YARN",
+  "serviceConfigs": [
+    {
+      "name": "hadoop_secure_web_ui",
+      "value": "true"
+    },
+    {
+      "name": "cm_yarn_container_usage_job_user",
+      "value": "cmjobuser"
+    }, {
+      "name": "hadoop_secure_web_ui",
+      "value": "true"
+    }, {
+      "name": "cm_yarn_enable_container_usage_aggregation",
+      "value": "true"
+    },
+    {
+      "name": "yarn_services_framework_path",
+      "value": "{{ yarn_services_framework_path }}"
+    },
+    {
+      "name": "cm_yarn_container_usage_input_dir",
+      "value": "{{ cm_yarn_container_usage_input_dir }}"
+    },
+    {
+      "name": "cm_yarn_container_usage_output_dir",
+      "value": "{{ cm_yarn_container_usage_output_dir }}"
+    },
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref }}_service",
+      "ref": "{{ ref }}"
+    }{% if not loop.last %},{% endif %}
+{% endfor %}
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "yarn-JOBHISTORY-BASE",
+      "roleType": "JOBHISTORY",
+      "configs": [
+        {
+          "name": "yarn_app_mapreduce_am_staging_dir",
+          "value": "{{ yarn_app_mapreduce_am_staging_dir }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "yarn-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [
+        {
+          "name": "mapred_submit_replication",
+          "value": "3"
+        }, 
+        {
+          "name": "mapred_reduce_tasks",
+          "value": "6"
+        },
+        {
+          "name": "mapreduce_application_framework_path",
+          "value": "{{ mapreduce_application_framework_path }}"
+        }
+ 
+      ],
+      "base": true
+    }, 
+    {
+      "refName": "yarn-NODEMANAGER-BASE",
+      "roleType": "NODEMANAGER",
+      "configs": [
+        {
+          "name": "yarn_nodemanager_resource_memory_mb",
+          "value": "{{yarn_nodemanager_resource_memory_mb}}"
+        },
+        {
+          "name": "yarn_nodemanager_resource_cpu_vcores",
+          "value": "{{yarn_nodemanager_resource_cpu_vcores}}"
+        },
+        {
+          "name": "yarn_nodemanager_local_dirs",
+          "value": "{{ yarn_nodemanager_local_dirs }}"
+        },
+        {
+          "name": "yarn_nodemanager_log_dirs",
+          "value": "{{ yarn_nodemanager_log_dirs }}"
+        }
+      ],
+      "base": true
+    }, 
+    {
+      "refName": "yarn-RESOURCEMANAGER-BASE",
+      "roleType": "RESOURCEMANAGER",
+      "configs": [
+          {
+            "name": "yarn_scheduler_maximum_allocation_mb",
+            "value": "{{yarn_scheduler_maximum_allocation_mb}}"
+          },
+          {
+            "name": "yarn_scheduler_maximum_allocation_vcores",
+            "value": "{{yarn_scheduler_maximum_allocation_vcores}}"
+          },
+          {
+            "name": "resourcemanager_config_safety_valve",
+            "value": "{{resourcemanager_config_safety_valve}}"
+          }
+      ],
+      "base": true
+    }
+  ]
+}

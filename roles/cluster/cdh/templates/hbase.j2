@@ -1,0 +1,91 @@
+{% set service_dependencies = {
+  'HDFS': 'hdfs',
+  'RANGER': 'ranger',
+  'ZOOKEEPER': 'zookeeper',
+  'ATLAS': 'atlas'
+} %}
+
+{
+  "refName": "hbase",
+  "serviceType": "HBASE",
+  "displayName": "HBASE",
+  "serviceConfigs": [
+
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ svc|lower() }}_service",
+      "ref": "{{ ref }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ,
+    {
+      "name": "hbase_thriftserver_http",
+      "value": "true"
+    },
+    {
+      "name": "hbase_thriftserver_support_proxyuser",
+      "value": "true"
+    },
+    {
+      "name": "hbase_service_config_safety_valve",
+      "value": "<property><name>phoenix.functions.allowUserDefinedFunctions</name><value>true</value></property><property><name>phoenix.schema.isNamespaceMappingEnabled</name><value>true</value></property>"
+    },
+    {
+      "name": "hbase_enable_indexing",
+      "value": "true"
+    },
+    {
+      "name": "hbase_enable_replication",
+      "value": "true"
+    },
+    {
+      "name": "hbase_thriftserver_security_authentication",
+      "value": "auth-conf"
+    }
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "hbase-MASTER-BASE",
+      "roleType": "MASTER",
+      "configs": [
+        {
+          "name": "hbase_master_java_heapsize",
+          "value": "{{ hbase_master_java_heapsize | default('4294967296') }}"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hbase-REGIONSERVER-BASE",
+      "roleType": "REGIONSERVER",
+      "configs": [
+        {
+          "name": "hbase_regionserver_java_heapsize",
+          "value": "{{ hbase_regionserver_java_heapsize | default('8589934592') }}"
+        },
+        {
+          "name": "hbase_regionserver_wal_codec",
+          "value": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec"
+        }
+      ],
+      "base": true
+    }, {
+      "refName": "hbase-HBASETHRIFTSERVER-BASE",
+      "roleType": "HBASETHRIFTSERVER",
+      "configs": [],
+      "base": true
+    }, {
+      "refName": "hbase-HBASERESTSERVER-BASE",
+      "roleType": "HBASERESTSERVER",
+      "configs": [],
+      "base": true
+    },
+    {
+      "refName": "hbase-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+    
+  ]
+}

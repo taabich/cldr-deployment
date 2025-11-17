@@ -1,0 +1,27 @@
+
+
+{
+  "refName": "iceberg_replication",
+  "serviceType": "ICEBERG_REPLICATION",
+  "displayName": "ICEBERG_REPLICATION",
+  "serviceConfigs": [
+       {
+          "name" : "hms_service",
+          "ref" : "hive"
+
+        }, {
+          "name" : "yarn_service",
+          "ref" : "yarn"
+        }
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "iceberg_replication-ICEBERG_REPLICATION_ADMINSERVER-BASE",
+      "roleType": "ICEBERG_REPLICATION_ADMINSERVER",
+      "configs": [
+      ],
+      "base": true
+    }
+   
+  ]
+}

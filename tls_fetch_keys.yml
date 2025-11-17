@@ -1,0 +1,16 @@
+
+# - hosts: ca_server
+#   gather_facts: false
+#   become: true
+#   tasks:
+#   - ansible.builtin.import_role:
+#       name: tls_cabuild
+
+
+- hosts: cluster
+  become: true
+  gather_facts: true
+  tasks:
+   - name: Clean base dir
+     ansible.builtin.import_role:
+        name: security/tls_fetch_keys

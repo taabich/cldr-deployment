@@ -1,26 +1,24 @@
 version: '3.9'
-
+# compose.yaml
 services:
   cldr-ansible:
+    image: localhost/cldr-ansible:latest
     build:
       context: .
       dockerfile: Dockerfile
-    image: cldr-ansible:latest
+      args:
+        USERNAME: ${USERNAME}
+        USER_UID: ${USER_UID}
+        USER_GID: ${USER_GID}
     container_name: cldr-ansible
     hostname: cldr.cloudera.dev
-
-    # run as your non-root user inside container
-    user: "9999:9999"         # keep consistent with Dockerfile UID/GID
-    working_dir: /home/mtaabich
-
+    # Run as the host user's uid:gid for clean file ownership on bind mounts
+    user: "${USER_UID}:${USER_GID}"
+    working_dir: /home/${USERNAME}
     volumes:
-      - ../:/projects
-      - ../entreprise:/entreprise
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-
-    privileged: true          # required for systemd in container
-    cap_add:
-      - SYS_ADMIN
-
-    tty: true                 # keep container open
-    stdin_open: true          # allows `docker-compose exec -it ...`
+      # Project root into the user's home
+      - ../:/home/${USERNAME}:Z
+    command: ["tail","-f","/dev/null"]
+    pull_policy: never
+    tty: true
+    stdin_open: true

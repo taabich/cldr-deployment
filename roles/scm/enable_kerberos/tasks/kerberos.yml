@@ -1,0 +1,46 @@
+
+
+- name: Set kerberos setting
+  cm_api:
+    endpoint: /cm/config
+    method: PUT
+    body:  "{{ krb_parameters }}"
+    status_code: 200
+    headers:
+      accept: application/json
+      Content-Type: application/json
+  register: kerberos_response
+  changed_when: false
+  failed_when:
+    - kerberos_response is failed
+    - "'already an active' not in kerberos_response.content"
+
+- name: Show only the JSON response (ignore headers)
+  debug:
+    msg: "{{ kerberos_response }}"
+    verbosity: 3
+
+
+
+
+- name: "Déterminer suffixe '/admin' pour MIT KDC"
+  set_fact:
+    krb5_base_admin: >-
+      {{ krb5_admin + '/admin' if krb5_kdc_type == 'MIT KDC' else krb5_admin }}
+
+- name: "Ajouter le realm au principal Kerberos"
+  set_fact:
+    krb5_kdc_admin_user: "{{ krb5_base_admin + '@' + krb5_realm }}"
+
+
+- name: Import KDC admin credentials
+  cm_api:
+    endpoint: /cm/commands/importAdminCredentials?password={{ krb5_password }}&username={{ krb5_kdc_admin_user | urlencode }}
+    method: POST
+  register: result
+  failed_when:
+    - result is failed
+    - "'already exists' not in result.content"
+  until: result is not failed
+  retries: 1
+  delay: 10

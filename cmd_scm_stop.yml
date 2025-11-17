@@ -1,0 +1,8 @@
+    
+- hosts: cloudera_manager
+  become: yes
+  tasks:
+  - name: Restart server cloudera-scm-server
+    service:
+      name: cloudera-scm-server
+      state: stopped

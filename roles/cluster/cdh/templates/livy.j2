@@ -1,0 +1,41 @@
+
+{% set service_dependencies = {
+  'YARN': 'yarn',
+  'SPARK_ON_YARN': 'spark_on_yarn',
+  'HIVE': 'hms',
+  'ZOOKEEPER': "zookeeper"
+} %}
+{
+  "refName": "livy",
+  "serviceType": "LIVY",
+  "displayName": "LIVY_FOR_SPARK",
+  "serviceConfigs": [
+    {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ ref|lower() }}_service",
+      "ref": "{{ svc | lower() }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "livy-LIVY_SERVER-BASE",
+      "roleType": "LIVY_SERVER",
+      "configs": [
+        {
+          "name": "livy_spnego_enabled",
+          "value": "false"
+        }
+      ],
+      "base": true
+    },
+     {
+      "refName": "livy-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+       
+  ]
+}

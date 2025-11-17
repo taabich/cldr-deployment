@@ -1,0 +1,68 @@
+- name: Install Apache HTTPD
+  ansible.builtin.package:
+    name: httpd
+    state: present
+
+- name: Vérifier si une directive Listen existe dans le fichier
+  ansible.builtin.shell: "grep -q '^Listen' /etc/httpd/conf/httpd.conf"
+  register: listen_check
+  ignore_errors: true
+
+- name: Remplacer la directive Listen si elle existe
+  ansible.builtin.lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen\s+\d+'
+    line: "Listen {{ httpd_port }}"
+    state: present
+    backrefs: yes
+    backup: yes
+  when: listen_check.rc == 0
+
+- name: Ensure HTTPD is enabled and started
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Create Cloudera repo root directory
+  ansible.builtin.file:
+    path: "{{ cloudera_repo_path }}"
+    state: directory
+    mode: '0755'
+    recurse: true
+
+- name: Set permissions on Cloudera repo directories
+  ansible.builtin.file:
+    path: "{{ cloudera_repo_path }}"
+    recurse: true
+    mode: '0755'
+
+- name: Allow HTTPD access via SELinux (if enforced)
+  ansible.builtin.command: setsebool -P httpd_read_user_content 1
+  when: ansible_facts.selinux.status == "enabled"
+  ignore_errors: true
+
+- name: Add SELinux context to repo path (if SELinux is enabled)
+  ansible.builtin.command: chcon -Rt httpd_sys_content_t "{{ cloudera_repo_path }}"
+  when: ansible_facts.selinux.status == "enabled"
+  ignore_errors: true
+
+
+  
+
+- name: Open HTTP (port 80) in firewall (if firewalld is running)
+  ansible.builtin.firewalld:
+    port: "{{httpd_port}}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.services['firewalld.service'] is defined and
+        ansible_facts.services['firewalld.service'].state == "running"
+  ignore_errors: true
+
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  when: ansible_facts.services['firewalld.service'] is defined
+  ignore_errors: true

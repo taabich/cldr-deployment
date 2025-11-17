@@ -1,0 +1,76 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: cldr-ansible
+  namespace: cldr
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: cldr-ansible
+  namespace: cldr
+spec:
+  runPolicy: Serial
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      noCache: true
+      buildArgs:
+        - name: USERNAME
+          value: "mtaabich"
+        - name: USER_UID
+          value: "1019"
+        - name: USER_GID
+          value: "1019"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: cldr-ansible:latest
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cldr-workspace
+  namespace: cldr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cldr-ansible
+  namespace: cldr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cldr-ansible
+  template:
+    metadata:
+      labels:
+        app: cldr-ansible
+    spec:
+      containers:
+        - name: cldr-ansible
+          image: image-registry.openshift-image-registry.svc:5000/cldr/cldr-ansible:latest
+          imagePullPolicy: Always
+          command: ["tail"]
+          args: ["-f", "/dev/null"]
+          workingDir: /home/mtaabich
+          securityContext:
+            runAsUser: 1019
+            runAsGroup: 1019
+          volumeMounts:
+            - name: workspace
+              mountPath: /home/mtaabich
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: cldr-workspace

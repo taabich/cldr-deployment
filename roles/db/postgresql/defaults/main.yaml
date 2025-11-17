@@ -1,0 +1,20 @@
+database_type: postgresql
+postgres_password: "{{database_password}}"
+
+
+locale: en_US.UTF-8
+auth_local: peer
+auth_host: md5
+pg_service_name: "{{ __postgresql_daemon }}"
+postgresql_data_dir: /data/rbdms
+postgres_config_file: "{{ __postgresql_config_path }}/postgresql.conf"
+postgres_hba_file: "{{ __postgresql_config_path }}/pg_hba.conf"
+
+max_connections: 300
+
+postgresql_daemon: postgresql
+
+
+
+
+local_temp_dir: '/tmp'

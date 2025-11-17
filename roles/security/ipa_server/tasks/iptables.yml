@@ -1,0 +1,81 @@
+# iptables rules for freeipa services
+## kerberos rules
+- name: KDC TCP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['KERBEROS']['kdc_tcp_port']}}
+    jump: ACCEPT
+
+- name: KDC UDP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['KERBEROS']['kdc_udp_port']}}
+    jump: ACCEPT
+
+- name: Kadmin TCP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['KERBEROS']['kadmin_tcp_port']}}
+    jump: ACCEPT
+
+- name: Kadmin UDP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['KERBEROS']['kadmin_udp_port']}}
+    jump: ACCEPT
+
+## LDAP rules
+- name: LDAP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['LDAP']['port']}}
+    jump: ACCEPT
+- name: LDAP SSL iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['LDAP']['ssl_port']}}
+    jump: ACCEPT
+  when: options['LDAP']['ssl_enabled'] is defined and options['LDAP']['ssl_enabled']
+
+## WEBUI rules
+- name: WEBUI iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['WEBUI']['port']}}
+    jump: ACCEPT
+- name: WEBUI SSL iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['WEBUI']['ssl_port']}}
+    jump: ACCEPT
+
+## BIND rules
+- name: BIND iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['BIND']['port']}}
+    jump: ACCEPT
+- name: BIND SSL iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['BIND']['ssl_port']}}
+    jump: ACCEPT
+
+
+## NTP rules
+- name: NTP iptables rule
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: {{options['NTP']['port']}}
+    jump: ACCEPT

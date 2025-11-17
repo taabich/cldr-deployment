@@ -1,0 +1,101 @@
+
+#500 nodes +
+clusters:
+  - name: "{{ cluster_name }}"
+    type: base
+    host_templates:
+      Master_ha:
+        HDFS: [NAMENODE, JOURNALNODE, FAILOVERCONTROLLER]
+        ZOOKEEPER: [SERVER]
+        KUDU: [KUDU_MASTER]
+        HBASE: [MASTER]
+        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+
+      Master_3:
+        YARN: [RESOURCEMANAGER]
+        QUEUEMANAGER: [QUEUEMANAGER_STORE, QUEUEMANAGER_WEBAPP]
+        ZOOKEEPER: [SERVER]
+        HDFS: [JOURNALNODE]
+        KUDU: [KUDU_MASTER]
+        HBASE: [MASTER]
+        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+      Master_4:
+        YARN: [RESOURCEMANAGER]
+        QUEUEMANAGER: [QUEUEMANAGER_STORE, QUEUEMANAGER_WEBAPP]
+        ZOOKEEPER: [SERVER]
+        HDFS: [JOURNALNODE]
+        SCHEMAREGISTRY: [SCHEMA_REGISTRY_SERVER]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+      Master_5:
+        MAPREDUCE: [JOBHISTORY]           # "JobHistory Server"
+        SPARK3_ON_YARN: [SPARK3_YARN_HISTORY_SERVER]  # "Spark History Server"
+        ZOOKEEPER: [SERVER]
+        HDFS: [JOURNALNODE]
+        OZONE: [OZONE_MANAGER, STORAGE_CONTAINER_MANAGER]
+
+      Worker:
+        HDFS: [DATANODE]
+        YARN: [NODEMANAGER]
+        IMPALA: [IMPALAD]
+        KUDU: [KUDU_TSERVER]
+        KAFKA: [KAFKA_BROKER, KAFKA_CONNECT]
+        HBASE: [REGIONSERVER]
+        SOLR: [SOLR_SERVER]
+        STREAMS_REPLICATION_MANAGER: [DRIVER]
+        OZONE: [OZONE_DATANODE]
+
+      Utility_1:
+        CRUISE_CONTROL: [CRUISE_CONTROL_SERVER]
+        STREAMS_MESSAGING_MANAGER: [STREAMS_MESSAGING_MANAGER_SERVER]
+        STREAMS_REPLICATION_MANAGER: [STREAMS_REPLICATION_MANAGER_SERVICE]
+
+      Utility_2:
+        HIVE: [HIVEMETASTORE]
+        IMPALA: [CATALOGSERVER, STATESTORE]
+        OOZIE: [OOZIE_SERVER]
+
+      Utility_3:
+        MGMT: [HOSTMONITOR]               # Cloudera Management Service role placement
+
+      Utility_4:
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        RANGERRMS: [RANGER_RMS_SERVER]
+        ATLAS: [ATLAS_SERVER]
+        INFRA_SOLR: [SOLR_SERVER]         # Cloudera-INFRA-SOLR for Atlas
+
+      Utility_5:
+        HIVE: [HIVEMETASTORE]
+        RANGER: [RANGER_ADMIN, RANGER_TAGSYNC, RANGER_USERSYNC]
+        RANGER_KMS: [RANGER_KMS_SERVER]
+        RANGERRMS: [RANGER_RMS_SERVER]
+        ATLAS: [ATLAS_SERVER]
+        INFRA_SOLR: [SOLR_SERVER]
+
+      Utility_6:
+        MGMT: [REPORTSMANAGER]            # Cloudera Management Service role
+
+      Utility_7:
+        MGMT: [SERVICEMONITOR]            # Cloudera Management Service role
+
+      Gateway_ha:
+        HUE: [HUE_SERVER]
+        HIVE: [HIVESERVER2, GATEWAY]
+        PHOENIX: [QUERY_SERVER]
+        HDFS: [GATEWAY]
+        HIVE_ON_TEZ: [GATEWAY]
+        SPARK3_ON_YARN: [GATEWAY]
+        LIVY_FOR_SPARK3: [GATEWAY]
+        FLINK: [GATEWAY]
+        SOLR: [GATEWAY]
+        KAFKA: [GATEWAY]
+        YARN: [GATEWAY]
+        OZONE: [S3_GATEWAY, GATEWAY]
+        KNOX: [KNOX_GATEWAY]              # one of the two HA Knox gateways
+
+

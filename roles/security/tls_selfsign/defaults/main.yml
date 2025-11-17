@@ -1,0 +1,2 @@
+keytool_path: /usr/bin/keytool
+openssl_path: /usr/bin/openssl

@@ -1,0 +1,32 @@
+
+- debug:
+    var: target_dir
+
+- name: Stat target dir
+  ansible.builtin.stat:
+    path: "{{ target_dir }}"
+  register: tgt
+
+- name: List entries inside target dir
+  when:
+    - tgt.stat.exists
+    - tgt.stat.isdir
+    - target_dir != '/'
+  ansible.builtin.find:
+    paths: "{{ target_dir }}"
+    file_type: any
+    patterns: "*"
+    recurse: false
+  register: to_delete
+
+- name: Remove each entry
+  when:
+    - tgt.stat.exists
+    - tgt.stat.isdir
+    - target_dir != '/'
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ to_delete.files }}"
+  loop_control:
+    label: "{{ item.path }}"

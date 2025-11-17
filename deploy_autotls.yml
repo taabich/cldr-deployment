@@ -1,0 +1,10 @@
+- hosts: cluster
+  gather_facts: yes
+
+- hosts: cloudera_manager
+  gather_facts: no
+  tasks:
+  - name: autotls
+    import_role:
+      name: security/tls_autotls
+

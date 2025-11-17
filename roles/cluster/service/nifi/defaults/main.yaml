@@ -1,0 +1,19 @@
+nifi_accounts:
+  - user: nifi
+    home: /var/lib/nifi
+    command: NiFi
+    keystore_acl: True
+
+  - user: nifiregistry
+    home: /var/lib/nifiregistry
+    command: NiFi Registry
+    keystore_acl: True
+
+
+all_dir_to_remove:
+  - /var/lib/nifi
+  - /var/lib/nifiregistry
+  
+
+enabled_services: "{{ clusters[].host_templates.values() | map('dict2items') | map('map', attribute='key') | flatten | unique }}"
+

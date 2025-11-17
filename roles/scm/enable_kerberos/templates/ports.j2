@@ -1,0 +1,9 @@
+{
+{%- if tls_activated | default(false) -%}
+"datanodeTransceiverPort": 9866,
+"datanodeWebPort": 9864
+{%- else -%}
+"datanodeTransceiverPort": 1004,
+"datanodeWebPort": 1006
+{%- endif -%}
+}

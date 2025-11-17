@@ -1,0 +1,13 @@
+---
+- name: Deploy Hadoop Services
+  hosts: cloudera_manager
+  become: yes
+  
+  tasks:
+    - name: NIFI init directories
+      ansible.builtin.import_role:
+        name: cluster/service/nifi
+      when: "'NIFI' in enabled_services"
+    - name: Deploy cluster
+      ansible.builtin.import_role:
+        name: cluster/cdh

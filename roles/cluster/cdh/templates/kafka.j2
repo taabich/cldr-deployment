@@ -1,0 +1,92 @@
+
+
+{% set service_dependencies = {
+   'RANGER': 'ranger',
+   'HDFS': 'hdfs',
+   'ZOOKEEPER': 'zookeeper'
+} %}
+{
+  "refName": "kafka",
+  "serviceType": "KAFKA",
+  "displayName": "KAFKA",
+  "serviceConfigs": [
+      {
+      "name": "kerberos.auth.enable",
+      "value": "false"
+    },
+    {
+      "name": "zookeeper.secure.connection.enable",
+      "value": "false"
+    },
+   {% for svc, ref in service_dependencies.items() if svc in enabled_services %}
+    {
+      "name": "{{ svc|lower() }}_service",
+      "ref": "{{ ref }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    
+    {% if too_few_brokers  %}
+    ,
+    {
+      "name": "offsets.topic.replication.factor",
+      "value": "2"
+    },
+    {
+      "name": "transaction.state.log.replication.factor",
+      "value": "2"
+    },
+    {
+      "name": "transaction.state.log.min.isr",
+      "value": "1"
+    }
+    {% endif %}
+    
+    
+
+  
+  ],
+  "roleConfigGroups": [
+    {
+      "refName": "kafka-KAFKA_BROKER-BASE",
+      "roleType": "KAFKA_BROKER",
+       "configs": [
+        {
+          "name": "graceful_stop_timeout",
+          "value": 5
+        },
+        {
+          "name": "broker_max_heap_size",
+          "value": "{{ kafka_broker_java_heapsize | default('4096') }}"
+        },
+        {
+          "name": "log.dirs",
+          "value": "{{ kafka_log_dirs }}"
+        }
+       ],
+      "base": true
+    },
+    {
+      "refName": "kafka-KAFKA_CONNECT-BASE",
+      "roleType": "KAFKA_CONNECT",
+      "configs": [
+        {% if too_few_brokers %}
+        {
+          "name": "kafka.connect.secret.storage.topic.replication.factor",
+          "value": "1"
+        }
+        {% endif %}
+        ],
+      "base": true
+    },
+     {
+      "refName": "kafka-GATEWAY-BASE",
+      "roleType": "GATEWAY",
+      "configs": [],
+      "base": true
+    }
+       
+  ]
+}
+
+
+

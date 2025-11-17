@@ -1,0 +1,232 @@
+# ================================================================
+# 1) Build list of expected host FQDNs (from inventory)
+# ================================================================
+- name: Build list of cluster FQDNs (fallback to inventory_hostname)
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    cluster_fqdns: >-
+      {{
+        groups['cluster']
+        | map('extract', hostvars, 'ansible_fqdn')
+        | map('default', None)
+        | list
+      }}
+    cluster_names_fallback: "{{ groups['cluster'] }}"
+
+- name: Build normalized list of {host, name}
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    cluster_name_items: >-
+      {{ cluster_name_items | default([]) + [ {
+        'host': item,
+        'name': (hostvars[item].ansible_fqdn | default(item))
+      } ] }}
+  loop: "{{ groups['cluster'] }}"
+  loop_control:
+    label: "{{ item }} -> {{ hostvars[item].ansible_fqdn | default(item) }}"
+
+# ================================================================
+# 2) List available local certificates and keys
+# ================================================================
+- name: Find local PEM certs 
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.find:
+    paths: "{{ local_certs_dir }}"
+    recurse: no
+    patterns: "*.pem"
+    file_type: file
+  register: pem_files
+
+- name: Find local KEY files (*.key)
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.find:
+    paths: "{{ local_keys_dir }}"
+    recurse: no
+    patterns: "*.key"
+    file_type: file
+  register: key_files
+
+# ================================================================
+# 3) Build lookup dicts {basename: path}
+# ================================================================
+- name: Build dict of certs
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    certs_by_name: >-
+      {{ certs_by_name | default({}) | combine({
+        (item.path | basename | regex_replace('\.pem$', '')): item.path
+      }) }}
+  loop: "{{ pem_files.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Build dict of keys
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    keys_by_name: >-
+      {{ keys_by_name | default({}) | combine({
+        (item.path | basename | regex_replace('\.key$', '')): item.path
+      }) }}
+  loop: "{{ key_files.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+# ================================================================
+# 4) Keep only names that have both cert+key and belong to cluster
+# ================================================================
+- name: Compute valid names (cert+key+cluster)
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    cluster_names: >-
+      {{ (cluster_name_items | default([])) | map(attribute='name') | list }}
+    selected_names: >-
+      {{
+        (cluster_name_items | default([]))
+        | map(attribute='name') | list
+        | intersect((certs_by_name | default({})).keys() | list)
+        | intersect((keys_by_name  | default({})).keys()  | list)
+        | unique
+        | sort
+      }}
+
+# ================================================================
+# 4) Build matched pairs from selected_names
+# ================================================================
+- name: Build matched pairs [{name, cert, key}]
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    matched_pairs: >-
+      {{
+        (matched_pairs | default([]))
+        + [ {'name': item,
+             'cert': (certs_by_name  | default({})).get(item),
+             'key' : (keys_by_name   | default({})).get(item) } ]
+      }}
+  loop: "{{ selected_names | default([]) }}"
+  loop_control:
+    label: "{{ item }}"
+  when: (selected_names | default([])) | length > 0
+
+- name: Prune any incomplete pairs (missing cert or key)
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.set_fact:
+    matched_pairs: >-
+      {{
+        (matched_pairs | default([]))
+        | selectattr('cert','defined')
+        | selectattr('key','defined')
+        | selectattr('cert','truthy')
+        | selectattr('key','truthy')
+        | list
+      }}
+
+- name: Show matched pairs (to be copied to CM hosts)
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.debug:
+    var: matched_pairs
+
+- name: Fail early if nothing to copy
+  run_once: true
+  delegate_to: localhost
+  ansible.builtin.fail:
+    msg: "No cert/key pairs matched cluster hostnames. Check local_certs_dir/local_keys_dir and names."
+  when: (matched_pairs | default([])) | length == 0
+
+
+# ================================================================
+# 5) Prepare destination dir on each Cloudera Manager host
+# ================================================================
+- name: Ensure destination directory exists on CM host(s)
+  become: true
+  ansible.builtin.file:
+    path: "{{ cmca_dir }}"
+    state: directory
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0750"
+
+# ================================================================
+# 6) Copy certs and keys from controller to CM host(s)
+# ================================================================
+- name: Copy certs to CM host(s)
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.cert }}"             # from controller
+    dest: "{{ cmca_dir }}/{{ item.name }}.pem"
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0644"
+  loop: "{{ matched_pairs }}"
+  loop_control:
+    label: "{{ item.name }}.pem"
+  when: (matched_pairs | length) > 0
+
+- name: Copy keys to CM host(s)
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.key }}"              # from controller
+    dest: "{{ cmca_dir }}/{{ item.name }}.key"
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0600"
+  loop: "{{ matched_pairs }}"
+  loop_control:
+    label: "{{ item.name }}.key"
+  when: (matched_pairs | length) > 0
+
+- name: Copy CA chain to CM dir
+  become: true
+  ansible.builtin.copy:
+    src: "{{ local_certs_dir }}/{{ ca_server_chain_cert_name }}"
+    dest: "{{ cmca_dir }}/{{ ca_server_chain_cert_name }}"
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0644"
+
+# ================================================================
+# 7) Validate each certificate with CA chain
+# ================================================================
+- name: Validate certificates with CA chain
+  become: true
+  ansible.builtin.shell: |
+    set -euo pipefail
+    openssl verify -verbose \
+      -CAfile "{{ cmca_dir }}/{{ ca_server_chain_cert_name }}" \
+      "{{ cmca_dir }}/{{ item.name }}.pem"
+  args:
+    executable: /bin/bash
+  loop: "{{ matched_pairs }}"
+  loop_control:
+    label: "{{ item.name }}.pem"
+  when: (matched_pairs | length) > 0
+
+# ================================================================
+# 8) Create password files
+# ================================================================
+- name: Create keystore password file
+  become: true
+  ansible.builtin.copy:
+    content: "{{ tls_keystore_password }}"
+    dest: "{{ cmca_dir }}/keystore.pwd"
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0600"
+
+- name: Create truststore password file
+  become: true
+  ansible.builtin.copy:
+    content: "{{ tls_truststore_password }}"
+    dest: "{{ cmca_dir }}/truststore.pwd"
+    owner: "{{ cm_owner }}"
+    group: "{{ cm_group }}"
+    mode: "0600"

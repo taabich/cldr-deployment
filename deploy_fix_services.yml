@@ -1,0 +1,9 @@
+- name: Install Cloudera Manager Server 
+  hosts: cluster
+  become: true
+  roles:
+  - role: cluster/service/config/oozie_ui
+  - role: cluster/service/config/hue_ticket_lifetime
+  
+
+
