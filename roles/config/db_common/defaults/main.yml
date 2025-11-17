@@ -1,0 +1,254 @@
+# Copyright 2023 Cloudera, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+database_host: "{{ groups['db_server'][0] | default('cloudera_manager[0]') }}"
+database_port: 5432
+
+database_password: changeme
+database_tls: false
+database_type: postgresql
+database_version: "{{ default_database_versions[database_type][ansible_distribution_major_version] }}"
+default_database_versions:
+  postgresql:
+    '7': 10
+    '8': 12
+  mariadb:
+    '7': 10.2
+    '8': 10.2
+  mysql:
+    '7': 5.7
+    '8': 8.0
+
+
+
+manual_tls_cert_distribution: false
+local_temp_dir: '/tmp'
+
+database_defaults:
+  SCM:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: scm
+    user: scm
+    password: "{{ database_password }}"
+  HIVE:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: metastore
+    user: hive
+    password: "{{ database_password }}"
+  HUE:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: hue
+    user: hue
+    password: "{{ database_password }}"
+  OOZIE:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: oozie
+    user: oozie
+    password: "{{ database_password }}"
+  RANGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: ranger
+    user: rangeradmin
+    password: "{{ database_password }}"
+  RANGER_KMS:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: rangerkms
+    user: rangerkms
+    password: "{{ database_password }}"
+  SCHEMAREGISTRY:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: schemaregistry
+    user: schemaregistry
+    password: "{{ database_password }}"
+  SQL_STREAM_BUILDER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: ssb_admin
+    user: ssb_admin
+    password: "{{ database_password }}"
+  SQL_STREAM_BUILDER_MVE:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: ssb_mve
+    user: ssb_mve
+    password: "{{ database_password }}"
+  STREAMS_MESSAGING_MANAGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: streamsmsgmgr
+    user: streamsmsgmgr
+    password: "{{ database_password }}"
+  QUERY_PROCESSOR:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: queryprocessor
+    user: queryprocessor
+    password: "{{ database_password }}"
+
+#New in 7.1.9, postgresql only until CHF2
+  QUEUEMANAGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: postgresql
+    name: queuemanager
+    user: queuemanager
+    password: "{{ database_password }}"
+
+  KNOX:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: postgresql
+    name: knox
+    user: knox
+    password: "{{ database_password }}"
+
+databases_cm_svcs:
+  # ACTIVITYMONITOR:
+  #   host: "{{ database_host }}"
+  #   port: "{{ database_port }}"
+  #   type: "{{ database_type }}"
+  #   name: amon
+  #   user: amon
+  #   password: "{{ database_password }}"
+  # NAVIGATOR:
+  #   host: "{{ database_host }}"
+  #   port: "{{ database_port }}"
+  #   type: "{{ database_type }}"
+  #   name: nav
+  #   user: nav
+  #   password: "{{ database_password }}"
+  # NAVIGATORMETASERVER:
+  #   host: "{{ database_host }}"
+  #   port: "{{ database_port }}"
+  #   type: "{{ database_type }}"
+  #   name: navms
+  #   user: navms
+  #   password: "{{ database_password }}"
+  REPORTSMANAGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: rman
+    user: rman
+    password: "{{ database_password }}"
+
+# Deprecated in ecs 1.5.0 +
+databases_ecs:
+  ALERTS:
+    host: "{{ database_host }}"
+    port: "{{ database_type | default_database_port }}"
+    type: "{{ database_port }}"
+    name: db-alerts
+    user: db-alerts
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  CLASSIC_CLUSTERS:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: classic-clusters
+    user: classic-clusters
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  CLUSTER_ACCESS_MANAGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-clusteraccessmanager
+    user: db-clusteraccessmanager
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  CLUSTER_PROXY:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: cluster-proxy
+    user: cluster-proxy
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  DEX:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-dex
+    user: db-dex
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  DWX:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-dwx
+    user: db-dwx
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  ENV:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-env
+    user: db-env
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  LIFTIE:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-liftie
+    user: db-liftie
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  MLX:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-mlx
+    user: db-mlx
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  RESOURCEPOOL_MANAGER:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-resourcepoolmanager
+    user: db-resourcepoolmanager
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"
+  UMS:
+    host: "{{ database_host }}"
+    port: "{{ database_port }}"
+    type: "{{ database_type }}"
+    name: db-ums
+    user: db-ums
+    password: "{{ database_password }}"
+    mode: "{{ cluster.ecs_database_mode | default('existing') }}"

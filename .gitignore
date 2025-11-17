@@ -2,7 +2,6 @@
 *.log
 tmp/
 entreprise
-config
 ansible_roles
 .bash_history
 *.ini
