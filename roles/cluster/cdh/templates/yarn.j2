@@ -50,6 +50,10 @@
         {
           "name": "yarn_app_mapreduce_am_staging_dir",
           "value": "{{ yarn_app_mapreduce_am_staging_dir }}"
+        },
+        {
+          "name": "mr2_jobhistory_java_heapsize",
+          "value": "{{ mr2_jobhistory_java_heapsize| default('1073741824')}}"
         }
       ],
       "base": true
@@ -92,7 +96,12 @@
         {
           "name": "yarn_nodemanager_log_dirs",
           "value": "{{ yarn_nodemanager_log_dirs }}"
-        }
+        },
+        {
+        "name": "node_manager_java_heapsize",
+        "value": "{{ node_manager_java_heapsize | default('1073741824') }}"
+       }
+
       ],
       "base": true
     }, 
@@ -111,7 +120,12 @@
           {
             "name": "resourcemanager_config_safety_valve",
             "value": "{{resourcemanager_config_safety_valve}}"
+          },
+          {
+            "name": "resource_manager_java_heapsize",
+            "value": "{{ resource_manager_java_heapsize | default('1073741824') }}"
           }
+
       ],
       "base": true
     }

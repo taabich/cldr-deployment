@@ -1,0 +1,30 @@
+    - name: Copy prereq-check.sh to remote hosts
+      copy:
+        src: files/prereq-check.sh
+        dest: /tmp/prereq-check.sh
+        mode: '0755'
+ 
+    - name: Execute prereq-check.sh and save result on each host
+      shell: /tmp/prereq-check.sh > /tmp/{{ inventory_hostname }}_pre_check.txt 2>&1
+      args:
+        executable: /bin/bash
+ 
+    - name: Verify result file exists
+      stat:
+        path: /tmp/{{ inventory_hostname }}_pre_check.txt
+      register: check_file
+
+    - name: Fetch result file back to control node
+      file:
+        path: /tmp/results
+        state: directory
+        mode: '777'
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Fetch result file back to control node
+      fetch:
+        src: /tmp/{{ inventory_hostname }}_pre_check.txt
+        dest: /tmp/results/
+        flat: yes
+      when: check_file.stat.exists

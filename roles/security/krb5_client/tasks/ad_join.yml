@@ -30,13 +30,13 @@
     backup: yes
   when: not (skip_krb5_conf_distribution | default(False))
 
+- name: Install packages
+  package:  
+    name: "{{ ad_packages }}"
+    state: present
+    
 - name: Join AD
   block:
-    - name: Install packages
-      package:  
-        name: "{{ ad_packages }}"
-        state: present
-        
 
     - name: pexpect is required to handle pwd prompt
       pip: name=pexpect

@@ -64,15 +64,7 @@
           "name": "datanode_java_heapsize",
           "value": "{{ datanode_java_heapsize | default('4294967296') }}"
         }
-        {% if enable_port %}
-         , {
-          "name": "dfs_datanode_port",
-          "value": "1004"
-        }, {
-          "name": "dfs_datanode_http_port",
-          "value": "1006"
-        }
-        {% endif %}
+   
       ],
       "base": true
     }, {
@@ -82,7 +74,12 @@
         {
           "name": "fs_checkpoint_dir_list",
           "value": "{{ fs_checkpoint_dir_list }}"
+        },
+        {
+          "name": "secondary_namenode_java_heapsize",
+          "value": "{{ secondary_namenode_java_heapsize | default('4294967296') }}"
         }
+
       ],
       "base": true
     }, {

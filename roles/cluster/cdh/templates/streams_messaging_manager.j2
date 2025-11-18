@@ -51,8 +51,13 @@
       "refName": "streams_messaging_manager-STREAMS_MESSAGING_MANAGER_SERVER-BASE",
       "roleType": "STREAMS_MESSAGING_MANAGER_SERVER",
       "configs": [
-    
+      {
+        "name": "SMM_HEAP_SIZE",
+        "value": "{{ SMM_HEAP_SIZE | default('6144') }}"
+      }
+
       {% if too_few_brokers %}
+      ,
       {
         "name": "streams.messaging.manager.internal.topics.replication.factor",
         "value": 1

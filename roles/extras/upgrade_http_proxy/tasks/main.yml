@@ -1,0 +1,63 @@
+---
+
+### ================================
+### ADD OR REMOVE PROXIES IN /etc/environment
+### ================================
+
+- name: "Manage proxy entries in /etc/environment"
+  lineinfile:
+    path: /etc/environment
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+    state: "{{ 'present' if state == 'present' else 'absent' }}"
+    create: yes
+  loop:
+    - { key: "http_proxy",  value: "{{ http_proxy }}" }
+    - { key: "https_proxy", value: "{{ https_proxy }}" }
+    - { key: "no_proxy",    value: "{{ no_proxy }}" }
+    - { key: "HTTP_PROXY",  value: "{{ http_proxy }}" }
+    - { key: "HTTPS_PROXY", value: "{{ https_proxy }}" }
+    - { key: "NO_PROXY",    value: "{{ no_proxy }}" }
+
+### ================================
+### /etc/profile.d/proxy.sh
+### ================================
+
+- name: "Deploy proxy exports if present"
+  template:
+    src: proxy.sh.j2
+    dest: /etc/profile.d/proxy.sh
+  when: state == "present"
+
+- name: "Remove profile proxy exports if absent"
+  file:
+    path: /etc/profile.d/proxy.sh
+    state: absent
+  when: state == "absent"
+
+### ================================
+### YUM PROXY
+### ================================
+
+- name: "Configure YUM proxy"
+  when: enable_yum_proxy and state == 'present'
+  lineinfile:
+    path: /etc/yum.conf
+    regexp: "^proxy="
+    line: "proxy={{ http_proxy }}"
+    insertafter: "[main]"
+
+- name: "Remove YUM proxy"
+  when: enable_yum_proxy and state == 'absent'
+  lineinfile:
+    path: /etc/yum.conf
+    regexp: "^proxy="
+    state: absent
+
+### ================================
+### DEBUG OUTPUT
+### ================================
+
+- name: "Display current proxy state"
+  debug:
+    msg: "Proxy state applied: {{ state }}"

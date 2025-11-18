@@ -1,0 +1,11 @@
+    payload:
+      items:
+        - name: "host_memswap_thresholds"
+          value: >-
+            {"warning":2000,"critical":"never"}
+        - name: host_available_entropy_thresholds
+          value: >-
+            {\"warning\":100,\"critical\":50}
+
+        - name: host_available_entropy_thresholds
+          value: "0.95"

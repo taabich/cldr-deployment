@@ -61,7 +61,7 @@
       "configs": [
         {
           "name": "hbase_regionserver_java_heapsize",
-          "value": "{{ hbase_regionserver_java_heapsize | default('8589934592') }}"
+          "value": "{{ hbase_regionserver_java_heapsize | default('33285996544') }}"
         },
         {
           "name": "hbase_regionserver_wal_codec",
@@ -72,12 +72,24 @@
     }, {
       "refName": "hbase-HBASETHRIFTSERVER-BASE",
       "roleType": "HBASETHRIFTSERVER",
-      "configs": [],
+      "configs": [
+        {
+          "name": "hbase_thriftserver_java_heapsize",
+          "value": "{{ hbase_thriftserver_java_heapsize | default('1073741824') }}"
+        }
+
+      ],
       "base": true
     }, {
       "refName": "hbase-HBASERESTSERVER-BASE",
       "roleType": "HBASERESTSERVER",
-      "configs": [],
+      "configs": [
+        {
+          "name": "hbase_restserver_java_heapsize",
+          "value": "{{ hbase_restserver_java_heapsize | default('1073741824') }}"
+        }
+
+      ],
       "base": true
     },
     {

@@ -44,7 +44,12 @@
       {
         "name": "conf/atlas-application.properties_role_safety_valve",
         "value": "atlas.proxyuser.{{ atlas_proxy_user }}.hosts={{ atlas_proxy_hosts }}\\natlas.proxyuser.{{ atlas_proxy_user }}.users={{ atlas_proxy_users }}\\natlas.proxyuser.{{ atlas_proxy_user }}.groups={{ atlas_proxy_groups }}"
+      },
+      {
+        "name": "atlas_max_heap_size",
+        "value": "{{ atlas_max_heap_size | default('2048') }}"
       }
+
       ],
       "base": true
     },

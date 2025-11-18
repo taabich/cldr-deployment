@@ -1,0 +1,10 @@
+    
+- hosts: cloudera_manager
+  become: yes
+  roles:
+  - role: operations/restart_scm
+
+- hosts: cluster
+  become: yes
+  roles:
+  - role: operations/restart_agent

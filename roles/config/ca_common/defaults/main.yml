@@ -16,7 +16,7 @@
 
 openssl_path: /usr/bin/
 
-tls_workdir_localpath: "{{inventory_dir}}/../tls_workdir_{{ cluster_name }}"
+tls_workdir_localpath: "/tmp/tls_workdir_{{ cluster_name }}"
 #Le répertoire des clés sur les machines distante
 #tls_localdir: "{{inventory_dir}}/../../tls_workdir_d01"
 local_keys_dir: "{{ tls_workdir_localpath }}/keys"

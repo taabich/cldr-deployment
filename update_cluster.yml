@@ -5,6 +5,6 @@
   become: true
   vars_files:
     - "{{ inventory_dir }}/service_config.yml"   # corrige "innventory_dir" + ajoute l’espace avant la }`
-    - "{{ inventory_dir }}/group_vars/krb5_server.yaml" 
+    - "{{ inventory_dir }}/group_vars/kerberos.yaml" 
   roles:
     - role: cluster/update           # syntaxe correcte pour appeler un rôle

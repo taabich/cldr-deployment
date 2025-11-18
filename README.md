@@ -240,13 +240,17 @@ zk_logdir: /data/zk
 
 
 # Preparing Environment Variables
-
 ```
 export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
 ansible-playbook ssh_known_hosts.yaml
 ansible -m ping all
 ```
-
+## Pre-check
+This script checks all the prerequisites on every machine, and the results are stored in /tmp/results, organized host by host
+```
+ansible-playbook pre_check.yml
+ansible -m ping all
+```
 
 # Cluster Installation
 ## Playbook Execution Order and Description
@@ -276,6 +280,9 @@ This section describes the ordered execution of Ansible playbooks used to deploy
 | `install_cluster.yml` |  Install  CDP cluster deployment using API mechanism. |
 | `cmd_scm_restart.yml` |  Restarts CM after TLS or repo operations. |
 | `cmd_agents_restart.yml` |  Forces agent restart (useful after TLS/certs). |
+
+
+
 
 # AutoTLS  Configuration
 

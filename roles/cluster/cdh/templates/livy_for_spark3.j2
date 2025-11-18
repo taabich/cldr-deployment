@@ -23,10 +23,15 @@
       "refName": "livy_for_spark3-LIVY_SERVER_FOR_SPARK3-BASE",
       "roleType": "LIVY_SERVER_FOR_SPARK3",
       "configs": [
-              {
+        {
           "name": "livy_spnego_enabled",
           "value": "false"
+        },
+        {
+          "name": "livy_max_heapsize",
+          "value": "{{ livy_max_heapsize | default('1073741824') }}"
         }
+
       ],
       "base": true
     },

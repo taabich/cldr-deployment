@@ -32,6 +32,11 @@
   set_fact:
     krb5_kdc_admin_user: "{{ krb5_base_admin + '@' + krb5_realm }}"
 
+- name: Delete Previous Credentials (in case)
+  cm_api:
+    endpoint: /cm/commands/deleteCredentials?deleteCredentialsMode=all
+    method: POST
+  ignore_errors: true
 
 - name: Import KDC admin credentials
   cm_api:
@@ -44,3 +49,30 @@
   until: result is not failed
   retries: 1
   delay: 10
+
+- name: Delete Previous Credentials (in case)
+  cm_api:
+    endpoint: /cm/commands/generateCredentials
+    method: POST
+  ignore_errors: true
+
+
+- name: Set ports kerberos
+  cm_api:
+    endpoint: /clusters/{{ cluster_name | urlencode() }}/commands/configureForKerberos
+    method: POST
+    body: "{{ lookup('template', 'ports.j2', convert_data=False) }}"
+    status_code: 200
+    headers:
+      accept: application/json
+      Content-Type: application/json
+  register: kerberos_response
+  failed_when:
+    - kerberos_response is failed
+    - "'already an active' not in kerberos_response.content"
+  ignore_errors: yes
+
+- name: Show only the JSON response (ignore headers)
+  debug:
+    msg: "{{ kerberos_response }}"
+    verbosity: 3

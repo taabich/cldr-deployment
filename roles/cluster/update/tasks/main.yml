@@ -71,11 +71,32 @@
   set_fact:
     svc_for_rcgs_list: "{{ role_updates_by_name | map(attribute='service') | reject('equalto', None) | unique | list }}"
 
+- name: Get list of deployed services
+  cm_api:
+    endpoint: "/clusters/{{ cluster_name }}/services"
+    method: GET
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: svc_raw
+
+
+
+- name: Extract existing service names
+  set_fact:
+    existing_services: "{{ svc_raw.json['items'] | map(attribute='name') | list }}"
+
+
+
+
 # Découvrir les Role Config Groups (RCG) pour chaque service (par NOM)
 - name: Discover Role Config Groups per service
-  when: (svc_for_rcgs_list | default([]) | length) > 0
+  when:
+    - svc_for_rcgs_list | default([]) | length > 0
+    - item in existing_services           # Check service exists
+    - (role_groups[item] | default([])) | length > 0   # Check RCGs exist
   cm_api:
-    endpoint: "/clusters/{{ cluster_name }}/services/{{ item }}/roleConfigGroups"   # <-- pas de lower
+    endpoint: "/clusters/{{ cluster_name }}/services/{{ item }}/roleConfigGroups"
     method: GET
     force_basic_auth: true
     status_code: 200
@@ -127,7 +148,9 @@
 
 # Appliquer les ROLE configs (RCG résolus) — pas de | lower sur le service
 - name: Apply ROLE configs (resolved RCG)
-  when: (role_updates_resolved | default([]) | length) > 0
+  when: 
+    - (role_updates_resolved | default([]) | length) > 0
+    - item.service in existing_services           # Check service exists
   vars:
     payload: >-
       {{ {'items':

@@ -5,6 +5,9 @@
     {
       "name": "mgmt-SERVICEMONITOR",
       "type": "SERVICEMONITOR",
+      "roleConfigGroupRef": {
+        "roleConfigGroupName": "mgmt-SERVICEMONITOR-BASE"
+      },
       "hostRef": {
         "hostId": "{{mgmt_service_api_host_id }}"
       }
@@ -136,7 +139,34 @@
           {
             "name": "headlamp_database_password",
             "value": "{{ databases.REPORTSMANAGER.password }}"
+          },
+          {
+            "name": "headlamp_heapsize",
+            "value": "{{ headlamp_heapsize | default('6442450944') }}"
           }
+
+        ]
+      }
+    }
+    ,
+     {
+      "name": "mgmt-SERVICEMONITOR-BASE",
+      "displayName": "Service Monitor",
+      "roleType": "SERVICEMONITOR",
+      "base": true,
+      "serviceRef": {
+        "serviceName": "mgmt"
+      },
+      "config": {
+        "items": [
+            {
+              "name": "firehose_non_java_memory_bytes",
+              "value": "{{ firehose_non_java_memory_bytes | default('12884901888') }}"
+            },
+            {
+              "name": "firehose_heapsize",
+              "value": "{{ firehose_heapsize | default('6442450944') }}"
+            }
         ]
       }
     }

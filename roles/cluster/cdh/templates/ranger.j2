@@ -44,7 +44,17 @@
     {
         "refName": "ranger-RANGER_ADMIN-BASE",
         "roleType": "RANGER_ADMIN",
-        "configs": [],
+        "configs": [
+              {
+                "name": "ranger_audit_solr_config_ttl",
+                "value": "30"
+              },
+              {
+                "name": "ranger_admin_max_heap_size",
+                "value": "{{ ranger_admin_max_heap_size | default('4096') }}"
+              }
+
+        ],
         "base": true
       },
      {

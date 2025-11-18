@@ -14,18 +14,18 @@
 
 ---
 
-- name: Prepare local dir for TLS
-  delegate_to: localhost
-  file:
-    state: absent
-    path: "{{ dir }}"
-  loop:
-    - "{{ local_csrs_dir }}"
-    - "{{ local_keys_dir }}"
-    - "{{ local_certs_dir }}"
-  loop_control:
-    loop_var: dir
-  run_once: true
+# - name: Prepare local dir for TLS
+#   delegate_to: localhost
+#   file:
+#     state: absent
+#     path: "{{ dir }}"
+#   loop:
+#     - "{{ local_csrs_dir }}"
+#     - "{{ local_keys_dir }}"
+#     - "{{ local_certs_dir }}"
+#   loop_control:
+#     loop_var: dir
+#   run_once: true
 
 
 - name: clean certificat

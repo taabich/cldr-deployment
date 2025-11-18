@@ -67,7 +67,7 @@
   loop:
     - { src: "{{ ca_server_root_cert_path }}",          name: "{{ ca_server_root_cert_name }}" }
     - { src: "{{ ca_server_intermediate_cert_path }}",  name: "{{ ca_server_intermediate_cert_name }}" }
-    - { src: "{{ tls_chain_path }}",         name: "{{ ca_server_chain_cert_name }}" }
+    - { src: "{{ ca_server_chain_cert_path }}",         name: "{{ ca_server_chain_cert_name }}" }
   run_once: true   
 
 - name: Write certs to controller with desired names

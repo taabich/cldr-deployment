@@ -108,7 +108,12 @@
         {
           "name": "ozone.metadata.dirs",
           "value": "{{ ozone_dn_metadata_dirs }}"
+        },
+        {
+          "name": "ozone_datanode_heap_size",
+          "value": "{{ ozone_datanode_heap_size | default('4096') }}"
         }
+
       ],
       "base": true
     },
@@ -131,7 +136,12 @@
         {
           "name": "ozone.metadata.dirs",
           "value": "{{ ozone_recon_metadata_dirs  }}"
+        },
+        {
+          "name": "ozone_recon_max_heap_size",
+          "value": "{{ ozone_recon_max_heap_size | default('1024') }}"
         }
+
       ],
       "base": true
     },
@@ -142,9 +152,26 @@
       "base": true
     },
     {
+      "refName": "ozone-HTTPFS_GATEWAY-BASE",
+      "roleType": "HTTPFS_GATEWAY",
+      "configs": [
+        {
+          "name": "ozone_httpfs_gateway_max_heap_size",
+          "value": "{{ ozone_httpfs_gateway_max_heap_size | default('1024') }}"
+        }
+      ],
+      "base": true
+    },
+    {
       "refName": "ozone-S3_GATEWAY-BASE",
       "roleType": "S3_GATEWAY",
-      "configs": [],
+      "configs": [
+        {
+          "name": "ozone_S3_gateway_max_heap_size",
+          "value": "{{ ozone_S3_gateway_max_heap_size | default('1024') }}"
+        }
+
+      ],
       "base": true
     },
     {

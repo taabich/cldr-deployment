@@ -9,7 +9,12 @@
     {
       "refName": "cruise_control-CRUISE_CONTROL_SERVER-BASE",
       "roleType": "CRUISE_CONTROL_SERVER",
-      "configs": [],
+      "configs": [
+        {
+          "name": "cruise_control_heap_size",
+          "value": "{{ cruise_control_heap_size | default('1024') }}"
+        }
+      ],
       "base": true
     }
        

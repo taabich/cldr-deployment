@@ -7,7 +7,11 @@
   "serviceType": "STREAMS_REPLICATION_MANAGER",
   "displayName": "SRM",
   "serviceConfigs": [
- 
+      {
+        "name": "SRM_HEAP_OPTS",
+        "value": "{{ SRM_HEAP_OPTS | default('-Xmx8G -Xms1G') }}"
+      },
+
       {
         "name": "clusters",
         "value": "primary,secondary"

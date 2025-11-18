@@ -1,0 +1,10 @@
+
+- name: Update host settings settings
+  cm_api:
+    endpoint: "/cm/allHosts/config"
+    method: PUT
+    force_basic_auth: yes
+    body_format: json
+    body: "{{ payload }}"
+    validate_certs: no
+    status_code: 200

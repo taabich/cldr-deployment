@@ -1,8 +1,0 @@
-- name: Install Cloudera Manager Server 
-  hosts: cluster
-  become: true
-  roles:
-  - role: cluster/initialize_service
-
-
-

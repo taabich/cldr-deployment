@@ -59,23 +59,31 @@ cloudera_manager_repo_url:  "{{ cloudera_archive_base_url }}/cm7/{{ cldr_version
 ## Disks configuration ##
 ############################
 # Set list of worker_nodes disks
+postgresql_data_dir: /data/rbdms
+
 
 kafka_disks:
-  - /data/01
-  - /data/02
+  - /data01/kafka
+  - /data02/kafka
 
 datanode_disks:
-  - /data/01
-  - /data/02
+  - /data01
+  - /data02
+
 namenode_disks:
-  - /data/nn1
+  - /data/nn
 
 journalnode_disks: /data/jn
 
+zk_datadir: /data/zk
+zk_logdir: /data/zk
 
+checkpoint_disks: /data/snn
+
+solr_datadir: /data/solr
+infra_solr_datadir: /data/infrasolr
 
 #Determines where on the local filesystem HDDS data will be stored.
-
 ozone_om_disk:    /data/ozone/om
 ozone_scm_disk:   /data/ozone/scm
 ozone_recon_disk: /data/ozone/recon
@@ -83,14 +91,9 @@ ozone_recon_disk: /data/ozone/recon
 ozone_datanode_storage_disks: 
   -  /data/ozone/dnstorage/data-01
   -  /data/ozone/dnstorage/data-02
-
 ozone_datanode_disk: /data/ozone/dn
 
 
-
-
-solr_datadir: /data/solr
-infra_solr_datadir: /data/infrasolr
 
 nifi_flow_disk: /data/01
 nifi_provenance_disks:
@@ -100,18 +103,17 @@ nifi_content_disks:
   - /data/01
   - /data/02
 
-zk_datadir: /data/zk
-zk_logdir: /data/zk
 
-checkpoint_disks: /data/nn1
-
-
-postgresql_data_dir: /data/rbdms
 
 #SSH KEY
 tls_workdir_localpath: /tmp/tls
 
 
+#Proxy Management
+state: present   # or "absent"
 
-#52.86.152.254
-#host -t SRV _kerberos._tcp.cloudera.loca
+http_proxy: "http://proxy.example.com:8080"
+https_proxy: "http://proxy.example.com:8080"
+no_proxy: "localhost,127.0.0.1,::1"
+
+enable_yum_proxy: true

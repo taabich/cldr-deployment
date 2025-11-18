@@ -1,0 +1,8 @@
+
+
+- hosts: cluster
+  become: true
+  tasks:
+   - name: Upgrade proxy
+     ansible.builtin.import_role:
+        name: extras/upgrade_http_proxy

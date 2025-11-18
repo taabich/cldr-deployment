@@ -1,26 +1,5 @@
 - name: Run prereq-check.sh on all hosts
-  hosts: all
+  hosts: cluster
   become: yes
-  tasks:
-    - name: Copy prereq-check.sh to remote hosts
-      copy:
-        src: scripts/prereq-check.sh
-        dest: /tmp/prereq-check.sh
-        mode: '0755'
- 
-    - name: Execute prereq-check.sh and save result on each host
-      shell: /tmp/prereq-check.sh > /tmp/{{ inventory_hostname }}_pre_check.txt 2>&1
-      args:
-        executable: /bin/bash
- 
-    - name: Verify result file exists
-      stat:
-        path: /tmp/{{ inventory_hostname }}_pre_check.txt
-      register: check_file
- 
-    - name: Fetch result file back to control node
-      fetch:
-        src: /tmp/{{ inventory_hostname }}_pre_check.txt
-        dest: ./results/
-        flat: yes
-      when: check_file.stat.exists
+  roles: 
+    - extras/prereq_check

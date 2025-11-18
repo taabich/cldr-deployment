@@ -18,7 +18,7 @@
   file:
     state: directory
     path: "{{ dir }}"
-    mode: 0755
+    mode: 0777
     owner: root
   loop:
     - "{{ local_csrs_dir }}"

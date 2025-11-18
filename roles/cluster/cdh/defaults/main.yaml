@@ -220,3 +220,41 @@ tez_staging_dir: "{{ fs_hdfsprefix }}/tmp/tez"
 yarn_app_mapreduce_am_staging_dir: "/user"
 hiveserver2_exec_scratchdir: "{{ fs_hdfsprefix }}/tmp/hive"
 
+
+
+livy_max_heapsize: 536870912
+hive_metastore_java_heapsize: 1073741824 
+hiveserver2_java_heapsize: 2147483648
+oozie_java_heapsize: 1073741824
+zookeeper_server_java_heapsize: 1073741824
+history_server_max_heapsize: 536870912
+solr_java_heapsize: 26430406656
+solr_java_direct_memory_size: 26430406656
+hbase_thriftserver_java_heapsize: 1073741824
+hbase_master_java_heapsize: 1073741824
+hbase_regionserver_java_heapsize: 33285996544
+catalogd_embedded_jvm_heapsize: 4294967296
+impalad_embedded_jvm_heapsize: 4294967296
+impalad_memory_limit: 216133546803
+balancer_java_heapsize: 1073741824
+datanode_java_heapsize: 4294967296
+namenode_java_heapsize: 6442450944
+secondary_namenode_java_heapsize: 4294967296
+mr2_jobhistory_java_heapsize: 1073741824
+node_manager_java_heapsize: 1073741824
+resource_manager_java_heapsize: 1073741824
+event_server_heapsize: 1073741824
+firehose_heapsize: 1073741824
+headlamp_heapsize: 1073741824
+ozone_datanode_heap_size: 4096
+om_max_heap_size: 4096
+ozone_recon_max_heap_size: 1024
+ozone_S3_gateway_max_heap_size: 1024
+scm_max_heap_size: 4096
+atlas_max_heap_size: 2048
+gateway_heap_size: 1024
+config_service_max_heap_size: 2147483648
+ranger_rms_max_heap_size: 1024
+ranger_kms_max_heap_size: 1024
+phoenix_queryserver_max_heap_size: 2147483648
+cruise_control_heap_size: 1024

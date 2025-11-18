@@ -1,5 +1,5 @@
 #Configuration of kerberos
-ad_domain_controller: 'EC2AMAZ-LOAEQMH.cloudera.infra'
+ad_domain_controller: "{{ groups['krb5_server'][0] }}"
 #ad_domain_controller: 'ec2-52-86-152-254.compute-1.amazonaws.com'
 krb5_kdc_type: 'Active Directory'
 #krb5_kdc_type: 'Red Hat IPA'               # Kerberos KDC type (none, MIT KDC, AD, Red Hat IPA)
@@ -16,3 +16,48 @@ krb5_kdc_active_directory_suffix: "OU=CDPCluster,DC=cloudera,DC=infra"
 krb5_kdc_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
 krb5_enc_types: "rc4-hmac aes256-cts aes128-cts"
 krb5_kadmin_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
+
+
+
+
+base_dc: "cloudera.infra"
+base_dn: "OU=CDPCluster,DC=cloudera,DC=infra"
+
+# In AD, users typically live in CN=Users or in a delegated OU.
+user_dn: "CN=Users,{{ base_dn }}"
+
+# Groups typically live in CN=Groups or a custom OU.
+group_dn: "CN=Groups,{{ base_dn }}"
+
+# Bind DN must be a user with permissions, typically:
+# CN=cdpadmin,CN=Users,OU=CDPCluster,DC=cloudera,DC=infra
+ldap_bind_dn: "CN={{ krb5_admin }},{{ user_dn }}"
+
+
+auth_provider:
+  ldap_url: "ldaps://{{ (groups['krb5_server'][0] if ('krb5_server' in groups and groups['krb5_server']) else (krb5_kdc_host if krb5_kdc_host is defined else None)) }}:636"
+
+  ldap_base_dn: "{{ base_dn }}"
+  ldap_bind_user_dn: "{{ ldap_bind_dn }}"
+  ldap_bind_password: "{{ ad_admin_password | default(lookup('env','AD_PASSWORD', default='Undefined')) }}"
+
+  ldap_search_base:
+    user: "{{ user_dn }}"
+    group: "{{ group_dn }}"
+    common: "{{ base_dn }}"
+
+  ldap_object_class:
+    user: "user"
+    group: "group"
+
+  ldap_search_filter:
+    user: "(sAMAccountName={0})"
+    member: "(member={0})"
+
+  ldap_attribute:
+    user: "sAMAccountName"
+    group: "cn"
+    member: "member"
+    user_member: "memberOf"
+
+  type: LDAP

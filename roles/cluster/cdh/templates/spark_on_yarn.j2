@@ -30,6 +30,10 @@
         {
           "name": "history_server_spnego_enabled",
           "value": "false"
+        },
+                 {
+          "name": "history_server_max_heapsize",
+          "value": "{{ history_server_max_heapsize | default('4294967296') }}"
         }
       ],
       "base": true

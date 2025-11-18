@@ -160,6 +160,6 @@
   
 - name: Generate certificate chain file
   ansible.builtin.shell: |
-    cat {{ ca_server_root_path_certs }}/{{ ca_server_root_cert_name }} {{ ca_server_intermediate_path_certs }}/{{ ca_server_intermediate_cert_name }}  > {{ tls_chain_path }}
+    cat {{ ca_server_root_path_certs }}/{{ ca_server_root_cert_name }} {{ ca_server_intermediate_path_certs }}/{{ ca_server_intermediate_cert_name }}  > {{ ca_server_chain_cert_path }}
   args:
     creates: "{{ tls_chain_path }}"
