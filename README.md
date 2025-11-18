@@ -51,7 +51,7 @@ Anti-virus software **must be disabled during the entire installation process** 
 | Atlas Server | 31000 / 31433 (TLS) | Metadata service |
 | Hue | 8888 / 8889 | UI access |
 | SMM | 9991 | Streams Messaging Manager |
-| Backend ↔ Frontend | 1000–50000 | Inter-service communication |
+
 
 ## Linux Installation Account
 A Linux user with **NOPASSWD sudo** must exist on all nodes:
@@ -65,13 +65,13 @@ If AD integration is required:
 - Provide a dedicated OU for CDP.
 - Provide an account with **full control** on users, groups, and computer objects inside the OU.
 ## Operating System Requirements
+### OS
+- [x] RHEL **9.4**
+- [x] RHEL **9.5**
 
-- RHEL **9.4**
-- Sysctl:
-  ```
-  vm.swappiness=1
-  vm.overcommit_memory=1
-  ```
+### Requirements
+- THP Swapping
+  THP Overcommit 
 - THP disabled  
 - firewalld disabled  
 - SELinux disabled or permissive  
@@ -237,17 +237,13 @@ zk_datadir: /data/zk
 zk_logdir: /data/zk
 ```
 
-## TLS Workdir
-```yaml
-tls_workdir_localpath: /tmp/tls
-```
 
 
 # Preparing Environment Variables
 
 ```
 export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
-ansible-playbook ansible-cdp/ssh_known_hosts.yaml
+ansible-playbook ssh_known_hosts.yaml
 ansible -m ping all
 ```
 
@@ -296,7 +292,14 @@ See **TLS Directory Structure** section for placement.
 
 ## TLS Directory Structure
 
+Configure TLS work directory
+```yaml
+tls_workdir_localpath: /tmp/tls
+```
+
 Before enabling TLS or AutoTLS, prepare the following directory structure under `/tmp/tls`:
+
+
 
 ```
 /tmp/tls/
@@ -336,24 +339,13 @@ Place the CA files in:
 # Kerberos Configuration
 (To be completed.)
 
-# Futures / Roadmap
-- NTP setup
-- /etc/hosts management
-- System limits tuning
-- SELinux and THP disabled
-- Repository setup
-- OpenJDK installation
-- MIT-KDC installation
-- Disk partitioning improvements
 
 # Cluster Deployment Features
-
+- External DB support
 - Cloudera Manager Server
 - Cloudera Manager Agent
 - Cloudera CMS
-- External DB support
 - CDP Runtime deployment
-- Custom directory structure
 
 # Cluster Components
 
@@ -362,7 +354,3 @@ HDFS, YARN, Hive, HBase, Oozie, ZooKeeper, Atlas, Kafka, Knox, Ranger, Ranger KM
 
 
 
-
-# Security
-FreeIPA Integration  
-AUTO TLS
