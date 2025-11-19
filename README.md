@@ -25,49 +25,49 @@ service startup.
 ### Required Network Ports
 
   Component          Ports             Description
-  ------------------ ----------------- ---------------------------------
-  SSH                TCP 22            Automation & administration
-  Cloudera Manager   7180 / 7183 TLS   CM Web UI & Agent communication
-  Ranger Admin       6080 / 6182 TLS   Ranger Administration UI
-  Knox               8443 / 8444 TLS   Gateway Access
-  Atlas Server       31000 / 31433     Metadata service
-  Hue                8888 / 8889       UI access
-  SMM                9991              Streams Messaging Manager
+  ------------------ | ----------------- | ---------------------------------
+  | SSH                | TCP 22            | Automation & administration
+  | Cloudera Manager   | 7180 / 7183 TLS   | CM Web UI & Agent communication
+  | Ranger Admin       | 6080 / 6182 TLS   | Ranger Administration UI
+  | Knox               | 8443 / 8444 TLS   | Gateway Access
+  | Atlas Server       | 31000 / 31433     | Metadata service
+  | Hue                | 8888 / 8889       | UI access
+  | SMM                | 9991              | Streams Messaging Manager
 
 ### Services requiring a dedicated database
 
--   Cloudera Manager Server\
--   Oozie Server\
--   Sqoop Server\
--   Reports Manager\
--   Hive Metastore\
--   Hue\
--   Ranger\
--   Schema Registry\
--   Streams Messaging Manager\
--   Knox\
+-   Cloudera Manager Server
+-   Oozie Server
+-   Sqoop Server
+-   Reports Manager
+-   Hive Metastore
+-   Hue
+-   Ranger
+-   Schema Registry
+-   Streams Messaging Manager
+-   Knox
 -   Ranger KMS
 
 ## Linux Installation Account
-
+``` yaml
     deploy ALL=(ALL) NOPASSWD:ALL
-
+```
 ## Active Directory Requirements
 
--   Provide a dedicated OU for CDP\
+-   Provide a dedicated OU for CDP
 -   Provide an account with **full control** over users, groups, and
     computer objects
 
 ## Operating System Requirements
 
--   RHEL 9.4 / 9.5\
+-   RHEL 9.4 / 9.5
 -   SSHD enabled
 
 ## Networking Requirements
 
--   Static IPs\
--   FQDN hostnames (lowercase)\
--   DNS forward & reverse lookup\
+-   Static IPs
+-   FQDN hostnames (lowercase)
+-   DNS forward & reverse lookup
 -   No multihoming
 
 ## Disk Requirements
@@ -182,15 +182,15 @@ zk_logdir: /data/zk
 
 ## Installation Workflow
 
--   deploy_repos.yml\
--   deploy_rbdms.yml\
--   deploy_database.yml\
--   deploy_rbdms_client.yml\
--   setup_prereqs.yml\
--   deploy_scm.yml\
--   deploy_agents.yml\
--   deploy_mgmt.yml\
--   prepare_services.yml\
+-   deploy_repos.yml
+-   deploy_rbdms.yml
+-   deploy_database.yml
+-   deploy_rbdms_client.yml
+-   setup_prereqs.yml
+-   deploy_scm.yml
+-   deploy_agents.yml
+-   deploy_mgmt.yml
+-   prepare_services.yml
 -   install_cluster.yml
 
 ## AutoTLS
@@ -211,6 +211,5 @@ no_proxy: localhost
 ```
 
 ## Optional Config
-
--   SSSD\
--   update_cluster.yml
+-   SSSD ==> use  the script `deploy_sssd.yml`
+-   Update configuration ==> use the script `update_cluster.yml`

@@ -6,3 +6,5 @@ ansible_roles
 .bash_history
 *.ini
 .ssh
+.DS_Store
+
