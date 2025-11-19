@@ -146,8 +146,7 @@ This layout is essential for separating logs, application binaries, and system s
 
 #### Worker Disks (`datanode_disks`)
 
-Used for HDFS DataNode, YARN NodeManager local, and Impala scratch
-directories.
+Used for HDFS DataNode, YARN NodeManager local, and Impala scratch directories.
 **Constraint:** Do not use disks larger than **8 TB**. Total capacity
 per node **\< 100 TB**.
 
@@ -161,20 +160,11 @@ datanode_disks:
 
 ### Master Disks (HDFS HA)
 
-  -----------------------------------------------------------------------
-  Variable                Service                 Key Requirements
-  ----------------------- ----------------------- -----------------------
-  `namenode_disks`        NameNode Metadata       Use multiple disks
-                                                  (JBOD). Required only
-                                                  on NameNode hosts.
-
-  `journalnode_disks`     JournalNode Logs        Dedicated disks
-                                                  strongly recommended to
-                                                  avoid I/O contention.
-
-  `checkpoint_disks`      Checkpoints             Typically same as
-                                                  NameNode disk.
-  -----------------------------------------------------------------------
+| Variable | Service | Key Requirements |
+| :--- | :--- | :--- |
+| `namenode_disks` | NameNode Metadata | Use multiple disks (JBOD). Required only on NameNode hosts. |
+| `journalnode_disks` | JournalNode Logs | Dedicated disks strongly recommended to avoid I/O contention. |
+| `checkpoint_disks` | Checkpoints | Typically same as NameNode disk. |
 
 ``` yaml
 namenode_disks:
@@ -189,34 +179,14 @@ checkpoint_disks: /data/nn1
 
 ### 4.3 Specialized Storage (Ozone, Kafka, NiFi)
 
-  --------------------------------------------------------------------------------
-  Service                 Variable(s)                      Key Requirements
-  ----------------------- -------------------------------- -----------------------
-  ZooKeeper               `zk_datadir`, `zk_logdir`        Dedicated disks
-                                                           mandatory to prevent
-                                                           I/O contention.
-
-  Kafka                   `kafka_disks`                    Dedicated disks,
-                                                           primary partitions (for
-                                                           heavy workloads only).
-
-  Solr / Infra-Solr       `solr_datadir`,                  Storage for Solr data
-                          `infra_solr_datadir`             (Infra-Solr stores
-                                                           Ranger/Atlas audits).
-
-  NiFi                    `nifi_flow_disk`,                Separate disks for
-                          `nifi_provenance_disks`,         Flow, Provenance,
-                          `nifi_content_disks`             Content (1 TB+
-                                                           recommended).
-
-  Ozone OM/SCM            `ozone_om_disk`,                 OM: RAID1 NVMe. SCM:
-                          `ozone_scm_disk`                 RAID1 NVMe/SSD.
-
-  Ozone Data              `ozone_datanode_storage_disks`   Must NOT be shared with
-                                                           HDFS or other systems.
-  --------------------------------------------------------------------------------
-
-------------------------------------------------------------------------
+  | Service | Variable(s) | Key Requirements |
+| :--- | :--- | :--- |
+| **ZooKeeper** | `zk_datadir`, `zk_logdir` | Dedicated disks mandatory to prevent I/O contention. |
+| **Kafka** | `kafka_disks` | Dedicated disks, primary partitions (for heavy workloads only). |
+| **Solr / Infra-Solr** | `solr_datadir`, `infra_solr_datadir` | Storage for Solr data (Infra-Solr stores Ranger/Atlas audits). |
+| **NiFi** | `nifi_flow_disk`, `nifi_provenance_disks`, `nifi_content_disks` | Separate disks for Flow, Provenance, Content (1 TB+ recommended). |
+| **Ozone OM/SCM** | `ozone_om_disk`, `ozone_scm_disk` | OM: RAID1 NVMe. SCM: RAID1 NVMe/SSD. |
+| **Ozone Data** | `ozone_datanode_storage_disks` | Must NOT be shared with HDFS or other systems. |
 
 ## 5. Installation Workflow
 
@@ -282,16 +252,11 @@ ansible -m ping all
 
 ### 6.1 Kerberos Integration
 
-  ------------------------------------------------------------------------------
-  Option                  Context                 Playbooks
-  ----------------------- ----------------------- ------------------------------
-  IDM / FreeIPA           Full IDM installation   `deploy_freeipa_server.yml`,
-                                                  `deploy_freeipa_client.yml`
-
-  Active Directory (AD)   AD integration prep     `deploy_krb5_client.yml`
-
-  MIT-KDC                 MIT KDC deployment      **TODO**
-  ------------------------------------------------------------------------------
+| Option | Context | Playbooks |
+| :--- | :--- | :--- |
+| **IDM / FreeIPA** | Full IDM installation | `deploy_freeipa_server.yml`, `deploy_freeipa_client.yml` |
+| **Active Directory (AD)** | AD integration prep | `deploy_krb5_client.yml` |
+| **MIT-KDC** | MIT KDC deployment | **TODO** |
 
 Final step:\
 **deploy_kerberos.yml** -- Enables Kerberos via CM API.
