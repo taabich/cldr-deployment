@@ -24,15 +24,15 @@ service startup.
 
 ### Required Network Ports
 
-  Component          Ports             Description
-  ------------------ | ----------------- | ---------------------------------
-  | SSH                | TCP 22            | Automation & administration
-  | Cloudera Manager   | 7180 / 7183 TLS   | CM Web UI & Agent communication
-  | Ranger Admin       | 6080 / 6182 TLS   | Ranger Administration UI
-  | Knox               | 8443 / 8444 TLS   | Gateway Access
-  | Atlas Server       | 31000 / 31433     | Metadata service
-  | Hue                | 8888 / 8889       | UI access
-  | SMM                | 9991              | Streams Messaging Manager
+  | Component          | Ports             | Description
+  | ------------------ | ----------------- | ---------------------------------|
+  | SSH                | TCP 22            | Automation & administration      |
+  | Cloudera Manager   | 7180 / 7183 TLS   | CM Web UI & Agent communication. |
+  | Ranger Admin       | 6080 / 6182 TLS   | Ranger Administration UI         |
+  | Knox               | 8443 / 8444 TLS   | Gateway Access.                  |
+  | Atlas Server       | 31000 / 31433     | Metadata service                 |
+  | Hue                | 8888 / 8889       | UI access                        |
+  | SMM                | 9991              | Streams Messaging Manager        |
 
 ### Services requiring a dedicated database
 
