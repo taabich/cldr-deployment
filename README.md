@@ -90,7 +90,7 @@ Initial configuration is performed inside the Ansible inventory and `group_vars`
 
 
 ## Basic Adminstration
-
+Configuration of administration user
 ```yaml
 admin_user: admin
 admin_password: Secure123!
@@ -117,16 +117,14 @@ database_install: no
 
 ## Enterprise Directory
 ```yaml
+# Directory when you put cloudera license.
 entreprise_dir: "{{ inventory_dir }}/../entreprise"
+# Private key used by cloudera CM to connect to all hosts
 ansible_ssh_private_key_file: "{{ entreprise_dir }}/id_rsa"
-private_key_path: "{{ ansible_ssh_private_key_file }}"
+# Pathe of cloudera License.
 cloudera_manager_license_file: "{{ entreprise_dir }}/license_cloudera.txt"
 ```
 
-## Cloudera Manager Connection
-```yaml
-cloudera_manager_host: "{{ groups['cloudera_manager'][0] default('localhost') }}"
-```
 
 ## Local Repository
 ```yaml
@@ -158,14 +156,14 @@ postgresql_data_dir: /data/rbdms
 
 # OS Disk Layout (All Nodes)
 
-| Mount      | Purpose                                   | Size         | Notes                              |          
+| Mount      | Purpose                                   | Size         | Notes                                         |          
 |------------|-------------------------------------------|--------------|-----------------------------------------------|
-| `/`        | Root filesystem                           | ≥ 25 GB      | OS base system                               
+| `/`        | Root filesystem                           | ≥ 25 GB      | OS base system                        |                  
 | `/home`    | User home directories                     | ≥ 25 GB      |                                             
-| `/var`     | System services, packages, spool, etc.    | ≥ 100 GB     | Heavy-write area for many daemons        |     
-| `/var/log` | System and application logs               | ≥ 200 GB     | Prevent log growth from filling `/var`     |   
-| `/opt`     | Application installs & CDP parcel storage | ≥ 100 GB     | Used by Cloudera parcels                     | 
-| `/tmp`     | Temporary storage                         | ≥ 20 GB      | Services & installers use temporary space    | 
+| `/var`     | System services, packages, spool, etc.    | ≥ 100 GB     | Heavy-write area for many daemons             |     
+| `/var/log` | System and application logs               | ≥ 200 GB     | Prevent log growth from filling `/var`        |   
+| `/opt`     | Application installs & CDP parcel storage | ≥ 100 GB     | Used by Cloudera parcels                      | 
+| `/tmp`     | Temporary storage                         | ≥ 20 GB      | Services & installers use temporary space     | 
 
 
 # Disk Configuration
@@ -259,12 +257,11 @@ zk_logdir: /data/zk
 
 ## Preparing Environment Variables
 Populate SSH known_hosts on all nodes to avoid interactive SSH prompts. 
-```
+yaml```
 export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
 ansible-playbook ssh_known_hosts.yaml
 ansible -m ping all
 ```
-
 
 # Installation Workflow
 
@@ -301,8 +298,8 @@ This section describes the ordered execution of Ansible playbooks used to deploy
 
 ## Installation of Cloudera Manager Server and agents
 - `deploy_scm.yml` - Installs and configures Cloudera Manager Server (SCM).
-- `deploy_agents.yml` Installs Cloudera Manager Agents on all nodes.
-- `deploy_mgmt.yml`  Deploys the Cloudera Management Services cluster.
+- `deploy_agents.yml` - Installs Cloudera Manager Agents on all nodes.
+- `deploy_mgmt.yml` - Deploys the Cloudera Management Services cluster.
 
 ## Cluster creation
 
@@ -388,13 +385,13 @@ TODO
 
 # Proxy Management
 - Configuration of http proxy is state is present ==> create http proxy, with absent ==> remove http proxies
+
 ```
 state: present   # or "absent"
 
 http_proxy: "http://proxy.example.com:8080"
 https_proxy: "http://proxy.example.com:8080"
 no_proxy: "localhost,127.0.0.1,::1"
-
 enable_yum_proxy: true
 ```
 
