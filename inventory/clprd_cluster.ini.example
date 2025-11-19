@@ -3,10 +3,10 @@ localhost ansible_connection=local
 
 
 [cloudera_manager]
-ccycloud-1.clprd.root.comops.site 
+<CM>
 
 [cms]
-ccycloud-1.clprd.root.comops.site  
+<CMS>
 
 [cluster_master_nodes]
 <master1> host_template=Master
@@ -51,11 +51,7 @@ cluster_gateway_nodes
 
 [krb5_server]
 <AD>
-#ipaserver
 
-
-#mit_kdc]
-#ccycloud.mit-kdc.root.comops.site
 
 [ipaserver:children]
 <IPASERVER>
