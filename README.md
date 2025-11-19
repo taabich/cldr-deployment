@@ -121,3 +121,256 @@ repo_host: "{{ groups['httpd_repo'][0] default('localhost') }}"
 httpd_port: 8080
 cloudera_archive_base_url: "http://{{ repo_host }}:{{ httpd_port }}/cloudera-repos"
 cloudera_manager_repo_url: "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions.cm.version }}"
+
+
+## Disk Configuration and Storage
+
+### 4.1 General OS Disk Layout (All Nodes)
+
+This layout is essential for separating logs, application binaries, and
+system services to ensure stability.
+
+  -----------------------------------------------------------------------
+  Mount Point       Purpose           Minimum Size      Notes
+  ----------------- ----------------- ----------------- -----------------
+  `/var/log`        System and        ≥ 200 GB          **Crucial:**
+                    Application Logs                    Prevents log
+                                                        growth from
+                                                        filling `/var`.
+
+  `/opt`            Application       ≥ 100 GB          Used by Cloudera
+                    Installs & **CDP                    parcels.
+                    Parcel Storage**                    
+
+  `/var`            System services,  ≥ 100 GB          Heavy-write area
+                    packages, spool,                    for daemons.
+                    etc.                                
+
+  `/`               Root filesystem   ≥ 25 GB           OS base system.
+
+  `/tmp`            Temporary storage ≥ 20 GB           Services and
+                                                        installers use
+                                                        this space.
+
+  **HDFS Disks**    Data disks        Use the           
+                                      **`noatime`**     
+                                      mount option.     
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+
+
+
+### 4.2 HDFS / YARN Configuration
+
+#### Worker Disks (`datanode_disks`)
+
+Used for HDFS DataNode, YARN NodeManager local, and Impala scratch
+directories.\
+**Constraint:** Do not use disks larger than **8 TB**. Total capacity
+per node **\< 100 TB**.
+
+``` yaml
+datanode_disks:
+  - /data/01
+  - /data/02
+```
+
+------------------------------------------------------------------------
+
+### Master Disks (HDFS HA)
+
+  -----------------------------------------------------------------------
+  Variable                Service                 Key Requirements
+  ----------------------- ----------------------- -----------------------
+  `namenode_disks`        NameNode Metadata       Use multiple disks
+                                                  (JBOD). Required only
+                                                  on NameNode hosts.
+
+  `journalnode_disks`     JournalNode Logs        Dedicated disks
+                                                  strongly recommended to
+                                                  avoid I/O contention.
+
+  `checkpoint_disks`      Checkpoints             Typically same as
+                                                  NameNode disk.
+  -----------------------------------------------------------------------
+
+``` yaml
+namenode_disks:
+  - /data/nn1
+  - /data/nn2
+
+journalnode_disks: /data/jn
+checkpoint_disks: /data/nn1
+```
+
+------------------------------------------------------------------------
+
+### 4.3 Specialized Storage (Ozone, Kafka, NiFi)
+
+  --------------------------------------------------------------------------------
+  Service                 Variable(s)                      Key Requirements
+  ----------------------- -------------------------------- -----------------------
+  ZooKeeper               `zk_datadir`, `zk_logdir`        Dedicated disks
+                                                           mandatory to prevent
+                                                           I/O contention.
+
+  Kafka                   `kafka_disks`                    Dedicated disks,
+                                                           primary partitions (for
+                                                           heavy workloads only).
+
+  Solr / Infra-Solr       `solr_datadir`,                  Storage for Solr data
+                          `infra_solr_datadir`             (Infra-Solr stores
+                                                           Ranger/Atlas audits).
+
+  NiFi                    `nifi_flow_disk`,                Separate disks for
+                          `nifi_provenance_disks`,         Flow, Provenance,
+                          `nifi_content_disks`             Content (1 TB+
+                                                           recommended).
+
+  Ozone OM/SCM            `ozone_om_disk`,                 OM: RAID1 NVMe. SCM:
+                          `ozone_scm_disk`                 RAID1 NVMe/SSD.
+
+  Ozone Data              `ozone_datanode_storage_disks`   Must NOT be shared with
+                                                           HDFS or other systems.
+  --------------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## 5. Installation Workflow
+
+This is the recommended ordered execution of the Ansible playbooks.
+
+### Pre-check Commands
+
+Set Ansible environment:
+
+``` bash
+export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+ansible-playbook ssh_known_hosts.yaml
+ansible -m ping all
+```
+
+
+------------------------------------------------------------------------
+
+### Step 1: Environment and Database Preparation
+
+#### Repository Setup
+
+-   **deploy_repos.yml** -- Deploy custom OS and Cloudera repositories,
+    download parcels.
+
+#### Database Configuration
+
+-   **deploy_rbdms.yml** -- Prepares storage for the DB backend.\
+-   **deploy_database.yml** -- Installs & configures DB server (if
+    `database_install: yes`).\
+-   **deploy_rbdms_client.yml** -- Installs DB client tools needed by CM
+    & services.
+
+#### OS Prerequisites
+
+-   **pre_check.yml** -- Runs pre-check scripts to validate
+    prerequisites.\
+-   **setup_prereqs.yml** -- Applies OS prerequisites (sysctl, limits,
+    NTP, disable swap/THP, etc.)
+
+------------------------------------------------------------------------
+
+### Step 2: Cloudera Manager and Agent Installation
+
+-   **deploy_scm.yml** -- Install and configure Cloudera Manager
+    Server.\
+-   **deploy_agents.yml** -- Install Cloudera Manager Agents.\
+-   **deploy_mgmt.yml** -- Deploy Cloudera Management Services (CMS).
+
+------------------------------------------------------------------------
+
+### Step 3: Cluster Deployment
+
+-   **prepare_services.yml** -- Templates and service configs before
+    install.\
+-   **install_cluster.yml** -- Deploy the CDP cluster using the CM API.
+
+------------------------------------------------------------------------
+
+## 6. Advanced Configuration (TLS, Kerberos, Proxy)
+
+------------------------------------------------------------------------
+
+### 6.1 Kerberos Integration
+
+  ------------------------------------------------------------------------------
+  Option                  Context                 Playbooks
+  ----------------------- ----------------------- ------------------------------
+  IDM / FreeIPA           Full IDM installation   `deploy_freeipa_server.yml`,
+                                                  `deploy_freeipa_client.yml`
+
+  Active Directory (AD)   AD integration prep     `deploy_krb5_client.yml`
+
+  MIT-KDC                 MIT KDC deployment      **TODO**
+  ------------------------------------------------------------------------------
+
+Final step:\
+**deploy_kerberos.yml** -- Enables Kerberos via CM API.
+
+Fixes:\
+**deploy_fix_krb5.yml** -- Applies Kerberos overrides.
+
+------------------------------------------------------------------------
+
+### 6.2 AutoTLS Configuration
+
+AutoTLS automates certificate management via CM.
+
+TLS Directory Example:
+
+    /tmp/tls/
+      ├── certs/<fqdn>.pem
+      ├── keys/<fqdn>.key
+      └── ca/ca-chain.cert.pem
+
+``` yaml
+tls_workdir_localpath: /tmp/tls
+```
+
+Apply AutoTLS:
+
+-   **deploy_autotls.yml**
+
+------------------------------------------------------------------------
+
+### 6.3 Proxy Management (State Driven)
+
+Proxy configuration is controlled by a single variable:
+
+``` yaml
+state: present   # or "absent"
+
+http_proxy: "http://proxy.example.com:8080"
+https_proxy: "http://proxy.example.com:8080"
+no_proxy: "localhost,127.0.0.1,::1"
+enable_yum_proxy: true
+```
+
+Playbook:\
+- **proxy_update.yml**
+
+------------------------------------------------------------------------
+
+### 6.4 Cluster Restart
+
+-   **cmd_restart_all.yml** -- Restarts CM, Agents, and the full cluster
+    (post-TLS, post-Kerberos, etc.)
+
+------------------------------------------------------------------------
+
+## 7. Running the Playbooks
+
+### 7.1 Command Structure
+
+``` bash
+ansible-playbook -i <INVENTORY_FILE> <PLAYBOOK_NAME.yml>
+```
