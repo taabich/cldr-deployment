@@ -122,6 +122,7 @@ httpd_port: 8080
 cloudera_archive_base_url: "http://{{ repo_host }}:{{ httpd_port }}/cloudera-repos"
 cloudera_manager_repo_url: "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions.cm.version }}"
 
+```
 
 ## Disk Configuration and Storage
 
