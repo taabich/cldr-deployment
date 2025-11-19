@@ -257,7 +257,7 @@ zk_logdir: /data/zk
 
 ## Preparing Environment Variables
 Populate SSH known_hosts on all nodes to avoid interactive SSH prompts. 
-yaml```
+```yaml
 export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
 ansible-playbook ssh_known_hosts.yaml
 ansible -m ping all
