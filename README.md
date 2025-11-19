@@ -253,27 +253,21 @@ zk_datadir: /data/zk
 zk_logdir: /data/zk
 ```
 
+# Configuration & Inventory
 
-# Inventory description
-Group Name,Purpose,Example Nodes/Variables
-[cloudera_manager],Defines the host for the Cloudera Manager (CM) server.,<CM>
-[cms],Defines the host for the Cloudera Management Service (CMS) server.,<CMS>
-[cluster_master_nodes],"Hosts designated as Cluster Masters (e.g., NameNode, ResourceManager).","<master1>, <master2>, <master3>"
-[cluster_worker_nodes],"Hosts designated as Cluster Workers (DataNodes, NodeManagers). Note the specific templates like Worker_kakfa.",<worker1> - <worker4>
-[cluster_worker_nodes:vars],"Sets the default host_template for all worker nodes, overridden by specific node entries.",host_template=Worker
-[cluster_utility_nodes],"Hosts used for various Utility services (e.g., monitoring, client access).","<Utility1>, <Utility2>"
-[cluster_gateway_nodes],Hosts acting as Gateways or edge nodes for cluster access.,"<Gateway1>, <Gateway2>"
-[cluster_ds_nodes],(Empty Group) Reserved for Data Science or specialized nodes if needed.,
-[cluster:children],Meta-group including all main cluster components.,"cloudera_manager, cluster_master_nodes, etc."
---- Identity Management ---,,
-[krb5_server],"The host serving as the Kerberos Key Distribution Center (KDC), typically Active Directory (AD).",<AD>
-[ipaserver:children],The host designated as the FreeIPA Server.,<IPASERVER>
-[ipaclients:children],Meta-group including all groups that need to be FreeIPA clients.,"cloudera_manager, cluster"
---- Infrastructure ---,,
-[ca_server],The host serving as the Certificate Authority server.,<ca_server>
-[db_server],"The host dedicated to running Cluster Databases (e.g., PostgreSQL/MySQL for CM/Services).",<db_server>
-[httpd_repo],The host serving as the Local Repository for packages and parcels.,<repos_server>
+###  Inventory File Structure
 
+The Ansible inventory file defines the host groups and assigns specific roles (via `host_template`) to each node within the cluster.
+
+| Group Name | Purpose | Example Nodes/Variables |
+| :--- | :--- | :--- |
+| `[cloudera_manager]` | Defines the host for the **Cloudera Manager (CM)** server. | `<CM>` |
+| `[cluster_master_nodes]` | Hosts designated as **Cluster Masters**. | `<master1>`, `<master2>`, etc. |
+| `[cluster_worker_nodes]` | Hosts designated as **Cluster Workers**. | `<worker1>`, `<worker2>`, etc. |
+| `[cluster_utility_nodes]` | Hosts used for various **Utility** services. | `<Utility1>` |
+| `[krb5_server]` | The host serving as the **Kerberos KDC** (e.g., Active Directory). | `<AD>` |
+| `[db_server]` | The host dedicated to running **Cluster Databases**. | `<db_server>` |
+| `[httpd_repo]` | The host serving as the **Local Repository** for packages and parcels. | `<repos_server>` |
 
 # Pre-check Commands
 
