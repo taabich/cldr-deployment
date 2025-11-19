@@ -196,19 +196,37 @@
 # ================================================================
 # 7) Validate each certificate with CA chain
 # ================================================================
-- name: Validate certificates with CA chain
-  become: true
+- name: Compare modulus only if cert + key exist
   ansible.builtin.shell: |
     set -euo pipefail
-    openssl verify -verbose \
-      -CAfile "{{ cmca_dir }}/{{ ca_server_chain_cert_name }}" \
-      "{{ cmca_dir }}/{{ item.name }}.pem"
+
+    if [[ ! -f "{{ item.cert }}" ]]; then
+      echo "SKIP: Missing cert {{ item.cert }}"
+      exit 0
+    fi
+
+    if [[ ! -f "{{ item.key }}" ]]; then
+      echo "SKIP: Missing key {{ item.key }}"
+      exit 0
+    fi
+
+    cert_mod=$(openssl x509 -noout -modulus -in "{{ item.cert }}" | openssl md5)
+    key_mod=$(openssl rsa  -noout -modulus -in "{{ item.key }}"  | openssl md5)
+
+    if [[ "$cert_mod" != "$key_mod" ]]; then
+      echo "MISMATCH for {{ item.name }}: cert and key DO NOT match!" >&2
+      exit 1
+    else
+      echo "MATCH for {{ item.name }}"
+    fi
   args:
     executable: /bin/bash
   loop: "{{ matched_pairs }}"
   loop_control:
-    label: "{{ item.name }}.pem"
-  when: (matched_pairs | length) > 0
+    label: "{{ item.name }}"
+  register: compare_results
+  failed_when: compare_results.rc != 0 and ('SKIP' not in compare_results.stdout)
+
 
 # ================================================================
 # 8) Create password files

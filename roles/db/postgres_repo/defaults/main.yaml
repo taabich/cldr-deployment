@@ -2,10 +2,7 @@ postgres_version: 17
 postgres_repo_name: "pgdg{{ postgres_version | replace('.','') }}"
 postgres_repo_key: "{{repo_postgres_url}}/RPM-GPG-KEY-PGDG-{{ postgres_version | replace('.','') }}"
 
+repo_postgres_url: "{{ cloudera_repo_path }}/{{postgres_repo_name}}"
 
-repo_root: /var/www/html/repos
-pg_version: 17
-pg_repo_dir: "{{ repo_root }}/postgresql{{ pg_postgres_versionversion }}"
-pg_repoid: "pgdg{{ postgres_version }}"
-pg_baseurl: "https://download.postgresql.org/pub/repos/yum/{{ postgres_version }}/redhat/rhel-9-x86_64"
-httpd_service: httpd
+
+

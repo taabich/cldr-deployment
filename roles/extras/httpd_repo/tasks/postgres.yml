@@ -1,0 +1,26 @@
+---
+- name: Install required packages
+  package:
+    name:
+      - dnf-plugins-core
+    state: present
+
+- name: Deploy PostgreSQL repo file
+  template:
+    src: pgdg.repo.j2
+    dest: /etc/yum.repos.d/pgdg-redhat-all.repo
+
+
+- name: Create repo directory
+  file:
+    path: "{{ postgres_repo_dir }}"
+    state: directory
+
+- name: Sync repository
+  include_tasks: reposync.yml
+
+
+- name: Remove repos used for download
+  file:
+    state: absent
+    dest: /etc/yum.repos.d/pgdg-redhat-all.repo

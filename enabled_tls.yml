@@ -1,6 +1,0 @@
-- name: Enable kerberos
-  hosts: cloudera_manager
-  become: true
-  roles:
-  - role: scm/tls
-

@@ -1,0 +1,17 @@
+    
+- hosts: cloudera_manager
+  become: yes
+  roles:
+  - role: operations/restart_scm
+
+- hosts: cluster
+  become: yes
+  roles:
+  - role: operations/restart_agent
+
+- hosts: cloudera_manager
+  become: yes
+  tasks:
+    - name: Restart Stale 
+      include_role:
+        name: operations/restart_stale

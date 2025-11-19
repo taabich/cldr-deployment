@@ -17,18 +17,11 @@
 
 
 
-- find: paths="{{ base_dir_security_pki }}/" recurse=no patterns="*.key"
-  register: files_to_copy
 
 
 - name: Bring Keys back to controller
   become: true
   fetch:
-    src: "{{  item_ssl_key.path }}"
-    dest: "{{ local_keys_dir }}/"
+    src: "{{  tls_key_path_plaintext }}"
+    dest: "{{ local_keys_dir }}/{{ ansible_fqdn }}.key"
     flat: yes
-  with_items:
-   - "{{ files_to_copy.files }}"
-  loop_control:
-     label: "{{ item_ssl_key.path }}"
-     loop_var: item_ssl_key

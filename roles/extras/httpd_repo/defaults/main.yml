@@ -8,7 +8,6 @@ httpd_port: 9090
 
 
 download_url: "{{ cloudera_manager_download_url }}"
-
 cm_repo_dir:  "{{ cloudera_repo_path }}/"
 tarball_name: "{{ download_url | basename }}"
 local_tarball_path: "/tmp/{{ tarball_name }}"
@@ -69,3 +68,7 @@ httpd_repos: >-
     + (enable_csa    | ternary(httpd_csa,    []))
   }}
 
+
+postgres_repo_name: pgdg17
+postgres_repo_dir: "{{ cloudera_repo_path }}"
+postgres_repo_download: https://download.postgresql.org/pub/repos/yum/17/redhat/rhel-9-x86_64/

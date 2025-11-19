@@ -1,39 +1,16 @@
-# ansible-socle-storage
+# Easy to install CDP
 
 - Tested with: **Cloudera CDP Private Cloud Base 7.1.9 / 7.3.1**
 
-# Table of Contents
-- [Introduction](#introduction)
-- [Requirements](#requirements)
-- [Environment Configuration](#environment-configuration)
-- [Cluster Configuration](#cluster-configuration)
-- [Database Configuration](#database-configuration)
-- [Virtual Mount Configuration](#virtual-mount-configuration)
-- [Disk Configuration](#disk-configuration)
-- [SmartSense Configuration](#smartsense-configuration)
-- [Preparing Environment Variables](#preparing-environment-variables)
-- [Cluster Installation](#cluster-installation)
-- [SSL Configuration](#ssl-configuration)
-- [Kerberos Configuration](#kerberos-configuration)
-- [Futures / Roadmap](#futures--roadmap)
-- [Cluster Deployment Features](#cluster-deployment-features)
-- [Cluster Components](#cluster-components)
-- [High Availability Components](#high-availability-components)
-- [Security](#security)
 
 # Introduction
-These Ansible playbooks provide a method for deploying **Cloudera CDP Private Cloud Base** clusters managed by Ambari.
+These Ansible playbooks provide a method for deploying **Cloudera CDP Private Cloud Base** clusters managed by CM.
 
 # Requirements
 - Ansible 2.8+
 - RHEL
-- Cloudera CDP Private Cloud Base
-
-# Environment Configuration
-Initial configuration is performed inside the Ansible inventory and `group_vars`.
-
-# Environment Configuration
-Initial environment setup is performed in the inventory and `group_vars`.
+- Cloudera CDP Private Cloud  Base 7.1.x adn 7.3.x
+ 
 
 # Pre-installation Requirements
 
@@ -41,21 +18,33 @@ Initial environment setup is performed in the inventory and `group_vars`.
 Anti-virus software **must be disabled during the entire installation process** to prevent interference with agent deployment and service startup.
 
 ## Required Network Ports
+You need to open some ports
 
-| Component | Ports | Description |
+| Component Ports Description
 |----------|--------|-------------|
-| SSH | TCP 22 | Required for automation and administration |
-| Cloudera Manager | 7180 / 7183 (TLS) | CM Web UI + Agent communication |
-| Ranger Admin | 6080 / 6182 (TLS) | Ranger UI |
-| Knox | 8443 / 8444 (TLS) | Gateway access |
-| Atlas Server | 31000 / 31433 (TLS) | Metadata service |
-| Hue | 8888 / 8889 | UI access |
-| SMM | 9991 | Streams Messaging Manager |
+| SSH TCP 22 Required for automation and administration
+| Cloudera Manager 7180 / 7183 (TLS) CM Web UI + Agent communication
+| Ranger Admin 6080 / 6182 (TLS) Ranger UI
+| Knox 8443 / 8444 (TLS) Gateway access
+| Atlas Server 31000 / 31433 (TLS) Metadata service
+| Hue 8888 / 8889 UI access
+| SMM 9991 Streams Messaging Manager
 
+###	**Which services need a database for their own metadata?**
+	-	Cloudera Manager Server
+	-	Oozie Server
+	-	Sqoop Server
+	-	Reports Manager
+	-	Hive Metastore Server
+	-	Hue Server
+	-	Ranger
+	-	Schema Registry
+	-	Streams Messaging Manager
+  - Knox
+  - RangerK%S
 
 ## Linux Installation Account
 A Linux user with **NOPASSWD sudo** must exist on all nodes:
-
 ```
 deploy ALL=(ALL) NOPASSWD:ALL
 ```
@@ -70,16 +59,7 @@ If AD integration is required:
 - [x] RHEL **9.5**
 
 ### Requirements
-- THP Swapping
-  THP Overcommit 
-- THP disabled  
-- firewalld disabled  
-- SELinux disabled or permissive  
-- IPv6 disabled  
 - SSHD enabled  
-- Passwordless SSH  
-- JDK 17 (64-bit) or  JDK 8 (64-bit) or JDK 11 (64-bit)
-- Python 3.9 or 3.8 
 
 ## Networking Requirements
 
@@ -99,7 +79,12 @@ noatime
 
 # Cluster Configuration
 
-## Basic Adminstratuin
+## Environment Configuration
+Initial configuration is performed inside the Ansible inventory and `group_vars`.
+
+
+## Basic Adminstration
+
 ```yaml
 admin_user: admin
 admin_password: Secure123!
@@ -109,11 +94,6 @@ cloudera_manager_admin_password: "{{ admin_password }}"
 ## Java Configuration
 ```yaml
 java_version: openjdk-17-jdk
-```
-
-## Networking / ECS
-```yaml
-ecs_enabled: no
 ```
 
 ## Database Backend
@@ -139,12 +119,12 @@ cloudera_manager_license_file: "{{ entreprise_dir }}/license_cloudera.txt"
 
 ## Cloudera Manager Connection
 ```yaml
-cloudera_manager_host: "{{ groups['cloudera_manager'][0] | default('localhost') }}"
+cloudera_manager_host: "{{ groups['cloudera_manager'][0] default('localhost') }}"
 ```
 
 ## Local Repository
 ```yaml
-repo_host: "{{ groups['httpd_repo'][0] | default('localhost') }}"
+repo_host: "{{ groups['httpd_repo'][0] default('localhost') }}"
 httpd_port: 8080
 cloudera_archive_base_url: "http://{{ repo_host }}:{{ httpd_port }}/cloudera-repos"
 ```
@@ -172,38 +152,48 @@ postgresql_data_dir: /data/rbdms
 
 # OS Disk Layout (All Nodes)
 
-| Mount      | Purpose                                  | Size         | Notes                                         |
+| Mount      Purpose                                  Size         Notes                                        
 |------------|-------------------------------------------|--------------|-----------------------------------------------|
-| `/`        | Root filesystem                           | ≥ 25 GB      | OS base system                                |
-| `/home`    | User home directories                     | ≥ 25 GB      |                                               |
-| `/var`     | System services, packages, spool, etc.    | ≥ 100 GB     | Heavy-write area for many daemons             |
-| `/var/log` | System and application logs               | ≥ 200 GB     | Prevent log growth from filling `/var`        |
-| `/opt`     | Application installs & CDP parcel storage | ≥ 100 GB     | Used by Cloudera parcels                      |
-| `/tmp`     | Temporary storage                         | ≥ 20 GB      | Services & installers use temporary space     |
+| `/`        Root filesystem                           ≥ 25 GB      OS base system                               
+| `/home`    User home directories                     ≥ 25 GB                                                   
+| `/var`     System services, packages, spool, etc.    ≥ 100 GB     Heavy-write area for many daemons            
+| `/var/log` System and application logs               ≥ 200 GB     Prevent log growth from filling `/var`       
+| `/opt`     Application installs & CDP parcel storage ≥ 100 GB     Used by Cloudera parcels                     
+| `/tmp`     Temporary storage                         ≥ 20 GB      Services & installers use temporary space    
 
 
 # Disk Configuration
 
 ## HDFS / YARN
 
+WorkerDisks
+- HDFS DataNode dirs + YARN NodeManager local dirs + Impala scratch dirs. Total capacity per node < 100 TB. Do not use disks larger than 8 TB.
+
 ```yaml
 datanode_disks:
   - /data/01
   - /data/02
+```
+Master Disks
+-  [`namenode_disks `] NameNode disks: In case of multiple disks with JBOD, use /data/nn1, /data/nn2 etc. mount points.
+Required only on the 2 Master Nodes that will have the NameNode roles deployed.
+-  [`journalnode_disks `] Use dedicated disks to avoid I/O contention.
+```yaml
 namenode_disks:
   - /data/nn1
+  - /data/nn2
 journalnode_disks: /data/jn
 checkpoint_disks: /data/nn1
 ```
 
-## Kafka
-```yaml
-kafka_disks:
-  - /data/01
-  - /data/02
-```
-
 ## Ozone
+
+- [`ozone_om_disk `] – Ozone OM: RAID 1 NVMe required
+- [`ozone_scm_disk `] – Disk to Ozone container : RAID 1 NVMe or SSD required.: Storage Container Manager
+- [`ozone_recon_disk `] – Disk to Ozone Recon : NVMe (required)
+- [`ozone_datanode_storage_disks `] – Ozone data storage: These disks must not be shared with HDFS or another storage system Total capacity per node < 100 TB. Do not use disks larger than 8 TB.
+- [`ozone_datanode_disk `] – One or more directories used for storing Ozone metadata. OzoneManager, SCM, and Datanode will write the metadata to this path.
+
 ```yaml
 ozone_om_disk:    /data/ozone/om
 ozone_scm_disk:   /data/ozone/scm
@@ -214,13 +204,33 @@ ozone_datanode_storage_disks:
 ozone_datanode_disk: /data/ozone/dn
 ```
 
+
+## Kafka
+-  full disk, primary partitions, only if you use KAKFA with heavy workloads
+
+```yaml
+kafka_disks:
+  - /data/01
+  - /data/02
+```
+
+
 ## Solr
+
+- [`solr_datadir `] – Only if you use Solr Search
+- [`infra_solr_datadir`] – CDP-INFRA-SOLR service. Stores collections for Ranger Audits and Atlas.
+
 ```yaml
 solr_datadir: /data/solr
 infra_solr_datadir: /data/infrasolr
 ```
 
 ## NiFi
+La liste des disques des NIFI est configurée par la propriété:
+- [`nifi_flow_disk `] – Disk for FlowReository 
+- [`nifi_provenance_disks`] – Provenance repository 1To + by disks 
+- [`nifi_content_disks`] – Content repository 1To + by disks
+
 ```yaml
 nifi_flow_disk: /data/01
 nifi_provenance_disks:
@@ -232,6 +242,8 @@ nifi_content_disks:
 ```
 
 ## ZooKeeper
+- [`zk_datadir,zk_logdir`] – Use dedicated disks to avoid I/O contention.
+
 ```yaml
 zk_datadir: /data/zk
 zk_logdir: /data/zk
@@ -240,6 +252,7 @@ zk_logdir: /data/zk
 
 
 # Preparing Environment Variables
+Populate SSH known_hosts on all nodes to avoid interactive SSH prompts. 
 ```
 export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
 ansible-playbook ssh_known_hosts.yaml
@@ -253,40 +266,52 @@ ansible -m ping all
 ```
 
 # Cluster Installation
-## Playbook Execution Order and Description
-
-
-## Playbook Execution Order and Description
 
 This section describes the ordered execution of Ansible playbooks used to deploy a full CDP Private Cloud Base cluster.
 
-| Playbook | Enabled | Purpose |
-|----------|---------|----------|
-| `ssh_known_hosts.yml` |  Populate SSH known_hosts on all nodes to avoid interactive SSH prompts. |
-| `deploy_freeipa_server.yml` | Installs and configures the FreeIPA identity server. |
-| `deploy_freeipa_client.yml` |  Installs FreeIPA clients on cluster nodes. |
-| `deploy_fix_krb5.yml` |  Applies Kerberos configuration fixes or overrides. |
-| `deploy_repos.yml` |  Deploys custom OS and Cloudera repositories. |
-| `deploy_rbdms.yml` | Conditional (`when: database_install`) | Prepares storage for the database backend (PostgreSQL/MySQL/etc.). |
-| `deploy_database.yml` | Conditional (`when: database_install`) | Installs and configures the database server (PostgreSQL by default). |
-| `deploy_rbdms_client.yml` | Installs database client tools needed by CM and services. |
-| `setup_prereqs.yml` |  Applies OS prerequisites, sysctl, limits, packages, NTP, etc. |
-| `deploy_scm.yml` |  Installs and configures Cloudera Manager Server (SCM). |
-| `deploy_agents.yml` | Installs Cloudera Manager Agents on all nodes. |
-| `deploy_mgmt.yml` |  Deploys the Cloudera Management Services cluster. |
-| `cmd_restart_scm.yml` |  Restarts Cloudera Manager Server. |
-| `cmd_restart_agents.yml` |  Restarts Cloudera Manager Agents. |
-| `prepare_services.yml` | Prepares service configuration before cluster install (templates, configs, etc.). |
-| `install_cluster.yml` |  Install  CDP cluster deployment using API mechanism. |
-| `cmd_scm_restart.yml` |  Restarts CM after TLS or repo operations. |
-| `cmd_agents_restart.yml` |  Forces agent restart (useful after TLS/certs). |
+
+## Preparing the evironnement
+
+1. Create the repository and download cloudera parcels
+
+- `deploy_repos.yml` - Deploys custom OS and Cloudera repositories.
+
+2. Install Postgres and create databases if not created by DBA
+- `deploy_rbdms.yml` -  Prepares storage for the database backend (PostgreSQL/MySQL/etc.). 
+- `deploy_database.yml` - Installs and configures the database server (PostgreSQL by default). 
+- `deploy_rbdms_client.yml` - Installs database client tools needed by CM and services.
+
+3. Applies OS prerequisites
+- `pre_check.yml` -  Use ansible scripts pre_check to check prerequisities
+- `setup_prereqs.yml` -  Applies OS prerequisites, sysctl, limits, packages, NTP, etc. 
+- [x]THP Swapping
+- [x] THP Overcommit 
+- [x] THP disabled  
+- [x] firewalld disabled  
+- [x] SELinux disabled or permissive  
+- [x] IPv6 disabled  
+- [ ] SSHD enabled  
+- [x] Passwordless SSH  
+- [x] JDK 17 (64-bit) or  JDK 8 (64-bit) or JDK 11 (64-bit)
+- [x] Python 3.9 or 3.8 
 
 
+4. Applies OS prerequisites
+
+## Installation of Cloudera Manager Server and agents
+- `deploy_scm.yml` - Installs and configures Cloudera Manager Server (SCM).
+- `deploy_agents.yml` Installs Cloudera Manager Agents on all nodes.
+- `deploy_mgmt.yml`  Deploys the Cloudera Management Services cluster.
+
+## Cluster creation
+
+- `prepare_services.yml` - Prepares service configuration before cluster install (templates, configs, etc.).
+- `install_cluster.yml` - Install  CDP cluster deployment using API mechanism. 
 
 
-# AutoTLS  Configuration
+## AutoTLS  Configuration
 
-## TLS Preparation
+1. TLS Preparation
 
 - One certificate per host (FQDN-based)
 - One private key per host
@@ -297,7 +322,7 @@ This section describes the ordered execution of Ansible playbooks used to deploy
 See **TLS Directory Structure** section for placement.
 
 
-## TLS Directory Structure
+2. TLS Directory Structure
 
 Configure TLS work directory
 ```yaml
@@ -307,7 +332,6 @@ tls_workdir_localpath: /tmp/tls
 Before enabling TLS or AutoTLS, prepare the following directory structure under `/tmp/tls`:
 
 
-
 ```
 /tmp/tls/
 ├── certs/
@@ -315,21 +339,21 @@ Before enabling TLS or AutoTLS, prepare the following directory structure under 
 └── ca/
 ```
 
-## Host Certificates
+3. Host Certificates
 Store each host certificate in `/tmp/tls/certs/` and name it using its FQDN:
 
 ```
 /tmp/tls/certs/<fqdn>.pem
 ```
 
-## Private Keys
+4. Private Keys
 Store the corresponding private keys in:
 
 ```
 /tmp/tls/keys/<fqdn>.key
 ```
 
-## Certificate Authority Files
+5. Certificate Authority Files
 Place the CA files in:
 
 ```
@@ -337,27 +361,49 @@ Place the CA files in:
 /tmp/tls/ca/intermediate.cert.pem
 /tmp/tls/ca/ca-chain.cert.pem
 ```
-## Apply AUTOTLS
-| Playbook | Enabled | Purpose |
+6. Apply AUTOTLS
+| Playbook Enabled Purpose
 |----------|---------|----------|
-| `deploy_autotls.yml` |  Enables Cloudera AutoTLS for automated certificate provisioning. |
+| `deploy_autotls.yml`  Enables Cloudera AutoTLS for automated certificate provisioning.
 
 
-# Kerberos Configuration
-(To be completed.)
+## Kerberos 
+### Kerberos Configuration
+1. Option[1] - Installation IDM or FreeIPA:  Only if you want to IDM or FreeIPA,
+* `deploy_freeipa_server.yml` - Optional:  Installs and configures the FreeIPA identity server. 
+* `deploy_freeipa_client.yml` -  Optional: Installs FreeIPA clients on cluster nodes
+* `deploy_fix_krb5.yml` -  Applies Kerberos configuration fixes or overrides
+
+2. Option[2] - [AD] Preparation AD
+* `deploy_krb5_client.yml` Create and prepare /etc/krb5.conf for AD or MIT-KDC
+
+3. Option[3] - [MIT-KDC] Install and prepare MIT-KDC
+TODO
+### Enable Kerberos
+* `deploy_kerberos.yml` - Deploy Kerberos
+
+## Reinstall every thing
+- `cmd_restart_all.yml` -  Restarts CM after TLS or kerberos configurations.
 
 
-# Cluster Deployment Features
-- External DB support
-- Cloudera Manager Server
-- Cloudera Manager Agent
-- Cloudera CMS
-- CDP Runtime deployment
+# Proxy Management
+- Configuration of http proxy is state is present ==> create http proxy, with absent ==> remove http proxies
+```
+state: present   # or "absent"
 
-# Cluster Components
+http_proxy: "http://proxy.example.com:8080"
+https_proxy: "http://proxy.example.com:8080"
+no_proxy: "localhost,127.0.0.1,::1"
 
-### CDP Services
-HDFS, YARN, Hive, HBase, Oozie, ZooKeeper, Atlas, Kafka, Knox, Ranger, Ranger KMS...
+enable_yum_proxy: true
+```
+
+- `proxy_update.yml` -  Deploy or clean proxy depands of state
 
 
+# Optional: SSSD Management
+- Configuration of sssd
 
+# Optional: Update configuration of cluster
+- This configuration is in `service_config.yml` if you want apply it for some custom, use the script:
+- `update_cluster.yml` -  Update the configuration of cluster

@@ -20,8 +20,8 @@
 #- import_playbook: cmd_restart_scm.yml
 #- import_playbook: cmd_restart_agents.yml
 - import_playbook: prepare_services.yml
-#- import_playbook: install_cluster.yml
-#- import_playbook: prepare_tls.yml
+- import_playbook: install_cluster.yml
+#- import_playbook: tls_prepare.yml
 #- import_playbook: deploy_autotls.yml
 #- import_playbook: cmd_scm_restart.yml
 #- import_playbook: cmd_agents_restart.yml

@@ -1,0 +1,111 @@
+[local]
+localhost ansible_connection=local
+
+
+[cloudera_manager]
+ccycloud-1.clprd.root.comops.site 
+
+[cms]
+ccycloud-1.clprd.root.comops.site  
+
+[cluster_master_nodes]
+<master1> host_template=Master
+<master2> host_template=Master
+<master3> host_template=Master3
+
+[cluster_worker_nodes]
+<worker1>      host_template=Worker_kakfa       
+<worker2>        host_template=Worker_kakfa      
+<worker3>        host_template=Worker_kakfa  
+<worker4>        host_template=Worker  
+
+
+[cluster_worker_nodes:vars] 
+host_template=Worker
+
+
+
+[cluster_utility_nodes]
+<Utility1> host_template=Utility
+<Utility2> host_template=Utility
+
+[cluster_gateway_nodes]
+<Gateway1> host_template=Gateway
+<<Gateway2>  host_template=Gateway
+
+
+
+[cluster_ds_nodes]
+
+
+
+[cluster:children]
+cloudera_manager
+cluster_master_nodes
+cluster_worker_nodes
+cluster_utility_nodes
+cluster_gateway_nodes
+
+
+
+
+[krb5_server]
+<AD>
+#ipaserver
+
+
+#mit_kdc]
+#ccycloud.mit-kdc.root.comops.site
+
+[ipaserver:children]
+<IPASERVER>
+
+
+[ipaclients:children]
+cloudera_manager
+cluster
+
+
+[ca_server]
+<ca_server>
+
+
+[db_server]
+<db_server>
+ 
+
+[httpd_repo]
+<repos_server>
+
+
+
+
+
+[hdfs_cluster:children]
+cluster
+cloudera_manager
+db_server
+krb5_server
+
+
+[kerberos:children]
+cluster
+cloudera_manager
+
+
+
+[deployment:children]
+cluster
+cloudera_manager
+db_server
+krb5_server
+
+
+
+
+[all:vars]
+ansible_python_interpreter=auto
+ansible_user=root
+ansible_ssh_user=root
+ansible_ssh_timeout=60
+
