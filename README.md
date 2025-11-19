@@ -124,7 +124,7 @@ cloudera_manager_repo_url: "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions
 
 ```
 
-## Disk Configuration and Storage
+## 4 Disk Configuration and Storage
 
 ### 4.1 General OS Disk Layout (All Nodes)
 
@@ -158,9 +158,6 @@ system services to ensure stability.
                                       mount option.     
   -----------------------------------------------------------------------
 
-------------------------------------------------------------------------
-
-
 
 
 ### 4.2 HDFS / YARN Configuration
@@ -168,7 +165,7 @@ system services to ensure stability.
 #### Worker Disks (`datanode_disks`)
 
 Used for HDFS DataNode, YARN NodeManager local, and Impala scratch
-directories.\
+directories.
 **Constraint:** Do not use disks larger than **8 TB**. Total capacity
 per node **\< 100 TB**.
 
@@ -265,16 +262,16 @@ ansible -m ping all
 
 #### Database Configuration
 
--   **deploy_rbdms.yml** -- Prepares storage for the DB backend.\
+-   **deploy_rbdms.yml** -- Prepares storage for the DB backend.
 -   **deploy_database.yml** -- Installs & configures DB server (if
-    `database_install: yes`).\
+    `database_install: yes`).
 -   **deploy_rbdms_client.yml** -- Installs DB client tools needed by CM
     & services.
 
 #### OS Prerequisites
 
 -   **pre_check.yml** -- Runs pre-check scripts to validate
-    prerequisites.\
+    prerequisites.
 -   **setup_prereqs.yml** -- Applies OS prerequisites (sysctl, limits,
     NTP, disable swap/THP, etc.)
 
@@ -283,8 +280,8 @@ ansible -m ping all
 ### Step 2: Cloudera Manager and Agent Installation
 
 -   **deploy_scm.yml** -- Install and configure Cloudera Manager
-    Server.\
--   **deploy_agents.yml** -- Install Cloudera Manager Agents.\
+    Server.
+-   **deploy_agents.yml** -- Install Cloudera Manager Agents.
 -   **deploy_mgmt.yml** -- Deploy Cloudera Management Services (CMS).
 
 ------------------------------------------------------------------------
@@ -292,7 +289,7 @@ ansible -m ping all
 ### Step 3: Cluster Deployment
 
 -   **prepare_services.yml** -- Templates and service configs before
-    install.\
+    install.
 -   **install_cluster.yml** -- Deploy the CDP cluster using the CM API.
 
 ------------------------------------------------------------------------
