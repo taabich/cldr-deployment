@@ -126,21 +126,19 @@ cloudera_manager_repo_url: "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions
 
 ## 4 Disk Configuration and Storage
 ### 4.1 General OS Disk Layout (All Nodes)
-This layout is essential for separating logs, application binaries, and
-system services to ensure stability.
+This layout is essential for separating logs, application binaries, and system services to ensure stability.
 
+| Mount Point | Purpose | Minimum Size | Notes |
+| :--- | :--- | :--- | :--- |
+| **`/var/log`** | System and Application Logs | **≥ 200 GB** | **Crucial:** Isolates log growth from the `/var` partition. |
+| **`/opt`** | Application Installs & **CDP Parcel Storage** | **≥ 100 GB** | Used by Cloudera parcels. |
+| **`/var`** | System services, packages, spool, etc. | **≥ 100 GB** | Heavy-write area for many daemons. |
+| **`/`** | Root filesystem | **≥ 25 GB** | OS base system. |
+| **`/tmp`** | Temporary storage | **≥ 20 GB** | Services and installers use this space. |
 
-| Mount Point    |   Purpose     |      Minimum Size   |   Notes |
-| :--- | :--- | :--- |
-|`/var/log`        |System and Application Logs       |≥ 200 GB       |    |  
-|`/opt`        |    Application Installs & **CDP  parcels.   Parcel Storage**   |    ≥ 100 GB    |      Used by Cloudera | 
-|`/var`        |    System services, packages, spool,for daemons. etc.   ≥ 100 GB    |      Heavy-write area|
-|`/`           |      Root filesystem   ≥ 25 GB     |      OS base system.|
-|`/tmp`        |    Temporary storage ≥ 20 GB    |       Services and installers use this space. | 
-                                                      
-                                                     
+---
 
-- **HDFS Disks**    Data disks        Use the       **`noatime`**      mount option.   
+*Note: For **HDFS Data Disks**, use the `noatime` mount option, and do not use these partitions for OS components.*  
                                        
                                        
 
