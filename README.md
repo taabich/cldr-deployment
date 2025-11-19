@@ -158,14 +158,14 @@ postgresql_data_dir: /data/rbdms
 
 # OS Disk Layout (All Nodes)
 
-| Mount      Purpose                                  Size         Notes                                        
+| Mount      | Purpose                                   | Size         | Notes                              |          
 |------------|-------------------------------------------|--------------|-----------------------------------------------|
-| `/`        Root filesystem                           ≥ 25 GB      OS base system                               
-| `/home`    User home directories                     ≥ 25 GB                                                   
-| `/var`     System services, packages, spool, etc.    ≥ 100 GB     Heavy-write area for many daemons            
-| `/var/log` System and application logs               ≥ 200 GB     Prevent log growth from filling `/var`       
-| `/opt`     Application installs & CDP parcel storage ≥ 100 GB     Used by Cloudera parcels                     
-| `/tmp`     Temporary storage                         ≥ 20 GB      Services & installers use temporary space    
+| `/`        | Root filesystem                           | ≥ 25 GB      | OS base system                               
+| `/home`    | User home directories                     | ≥ 25 GB      |                                             
+| `/var`     | System services, packages, spool, etc.    | ≥ 100 GB     | Heavy-write area for many daemons        |     
+| `/var/log` | System and application logs               | ≥ 200 GB     | Prevent log growth from filling `/var`     |   
+| `/opt`     | Application installs & CDP parcel storage | ≥ 100 GB     | Used by Cloudera parcels                     | 
+| `/tmp`     | Temporary storage                         | ≥ 20 GB      | Services & installers use temporary space    | 
 
 
 # Disk Configuration
@@ -363,9 +363,8 @@ Place the CA files in:
 /tmp/tls/ca/ca-chain.cert.pem
 ```
 6. Apply AUTOTLS
-| Playbook Enabled Purpose
-|----------|---------|----------|
-| `deploy_autotls.yml`  Enables Cloudera AutoTLS for automated certificate provisioning.
+
+- `deploy_autotls.yml`   Cloudera AutoTLS for automated certificate.
 
 
 ## Kerberos 
@@ -403,7 +402,7 @@ enable_yum_proxy: true
 
 
 # Optional: SSSD Management
-- Configuration of sssd
+- Configuration of sssd 
 
 # Optional: Update configuration of cluster
 - This configuration is in `service_config.yml` if you want apply it for some custom, use the script:
