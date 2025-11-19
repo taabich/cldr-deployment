@@ -282,8 +282,9 @@ This section describes the ordered execution of Ansible playbooks used to deploy
 3. Applies OS prerequisites
 - `pre_check.yml` -  Use ansible scripts pre_check to check prerequisities
 - `setup_prereqs.yml` -  Applies OS prerequisites, sysctl, limits, packages, NTP, etc. 
-- [x]THP Swapping
-- [x] THP Overcommit 
+
+- [x] Disbale swapping
+- [x] Disable Overcommit 
 - [x] THP disabled  
 - [x] firewalld disabled  
 - [x] SELinux disabled or permissive  
@@ -340,21 +341,21 @@ Before enabling TLS or AutoTLS, prepare the following directory structure under 
 3. Host Certificates
 Store each host certificate in `/tmp/tls/certs/` and name it using its FQDN:
 
-```
+```yaml
 /tmp/tls/certs/<fqdn>.pem
 ```
 
 4. Private Keys
 Store the corresponding private keys in:
 
-```
+```yaml
 /tmp/tls/keys/<fqdn>.key
 ```
 
 5. Certificate Authority Files
 Place the CA files in:
 
-```
+```shell
 /tmp/tls/ca/ca.cert.pem
 /tmp/tls/ca/intermediate.cert.pem
 /tmp/tls/ca/ca-chain.cert.pem
@@ -366,16 +367,17 @@ Place the CA files in:
 
 ## Kerberos 
 ### Kerberos Configuration
-1. Option[1] - Installation IDM or FreeIPA:  Only if you want to IDM or FreeIPA,
-* `deploy_freeipa_server.yml` - Optional:  Installs and configures the FreeIPA identity server. 
-* `deploy_freeipa_client.yml` -  Optional: Installs FreeIPA clients on cluster nodes
-* `deploy_fix_krb5.yml` -  Applies Kerberos configuration fixes or overrides
+**Option [1] - Installation (IDM or FreeIPA)**
+* **Purpose:** Only select this option if you require IDM or FreeIPA identity management.
+* `deploy_freeipa_server.yml`: Installs and configures the FreeIPA identity server (Optional).
+* `deploy_freeipa_client.yml`: Installs FreeIPA clients on cluster nodes (Optional).
+* `deploy_fix_krb5.yml`: Applies Kerberos configuration fixes or overrides.
 
-2. Option[2] - [AD] Preparation AD
-* `deploy_krb5_client.yml` Create and prepare /etc/krb5.conf for AD or MIT-KDC
+**Option [2] - Active Directory (AD) Preparation**
+* `deploy_krb5_client.yml`: Creates and prepares the `/etc/krb5.conf` file for AD or MIT-KDC integration.
 
-3. Option[3] - [MIT-KDC] Install and prepare MIT-KDC
-TODO
+**Option [3] - MIT-KDC Installation and Preparation (To Do)**
+* *Action:* Install and prepare MIT-KDC. (TODO: Further details required)
 ### Enable Kerberos
 * `deploy_kerberos.yml` - Deploy Kerberos
 
@@ -395,7 +397,7 @@ no_proxy: "localhost,127.0.0.1,::1"
 enable_yum_proxy: true
 ```
 
-- `proxy_update.yml` -  Deploy or clean proxy depands of state
+- `proxy_update.yml` -  The deployment or cleanup of the proxy is state-dependent.
 
 
 # Optional: SSSD Management
