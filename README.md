@@ -136,8 +136,6 @@ This layout is essential for separating logs, application binaries, and system s
 | **`/`** | Root filesystem | **≥ 25 GB** | OS base system. |
 | **`/tmp`** | Temporary storage | **≥ 20 GB** | Services and installers use this space. |
 
----
-
 *Note: For **HDFS Data Disks**, use the `noatime` mount option, and do not use these partitions for OS components.*  
                                        
                                        
@@ -156,8 +154,6 @@ datanode_disks:
   - /data/02
 ```
 
-------------------------------------------------------------------------
-
 ### Master Disks (HDFS HA)
 
 | Variable | Service | Key Requirements |
@@ -174,8 +170,6 @@ namenode_disks:
 journalnode_disks: /data/jn
 checkpoint_disks: /data/nn1
 ```
-
-------------------------------------------------------------------------
 
 ### 4.3 Specialized Storage (Ozone, Kafka, NiFi)
 
@@ -203,7 +197,6 @@ ansible -m ping all
 ```
 
 
-------------------------------------------------------------------------
 
 ### Step 1: Environment and Database Preparation
 
@@ -227,7 +220,7 @@ ansible -m ping all
 -   **setup_prereqs.yml** -- Applies OS prerequisites (sysctl, limits,
     NTP, disable swap/THP, etc.)
 
-------------------------------------------------------------------------
+
 
 ### Step 2: Cloudera Manager and Agent Installation
 
@@ -236,7 +229,7 @@ ansible -m ping all
 -   **deploy_agents.yml** -- Install Cloudera Manager Agents.
 -   **deploy_mgmt.yml** -- Deploy Cloudera Management Services (CMS).
 
-------------------------------------------------------------------------
+
 
 ### Step 3: Cluster Deployment
 
@@ -244,11 +237,11 @@ ansible -m ping all
     install.
 -   **install_cluster.yml** -- Deploy the CDP cluster using the CM API.
 
-------------------------------------------------------------------------
+
 
 ## 6. Advanced Configuration (TLS, Kerberos, Proxy)
 
-------------------------------------------------------------------------
+
 
 ### 6.1 Kerberos Integration
 
@@ -264,7 +257,7 @@ Final step:\
 Fixes:\
 **deploy_fix_krb5.yml** -- Applies Kerberos overrides.
 
-------------------------------------------------------------------------
+
 
 ### 6.2 AutoTLS Configuration
 
@@ -285,7 +278,7 @@ Apply AutoTLS:
 
 -   **deploy_autotls.yml**
 
-------------------------------------------------------------------------
+
 
 ### 6.3 Proxy Management (State Driven)
 
@@ -303,14 +296,14 @@ enable_yum_proxy: true
 Playbook:\
 - **proxy_update.yml**
 
-------------------------------------------------------------------------
+
 
 ### 6.4 Cluster Restart
 
 -   **cmd_restart_all.yml** -- Restarts CM, Agents, and the full cluster
     (post-TLS, post-Kerberos, etc.)
 
-------------------------------------------------------------------------
+
 
 ## 7. Running the Playbooks
 
