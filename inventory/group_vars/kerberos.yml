@@ -19,7 +19,6 @@ krb5_kadmin_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}
 
 
 
-
 base_dc: "cloudera.infra"
 base_dn: "OU=CDPCluster,DC=cloudera,DC=infra"
 
