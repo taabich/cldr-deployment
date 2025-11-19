@@ -7,6 +7,9 @@
     group: cloudera-scm
     mode: 0755
 
+- debug:
+    var: "{{cloudera_manager_csds}}"
+
 - name: Download CSDs
   get_url:
     url: "{{ __csd_item }}"

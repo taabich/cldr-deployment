@@ -46,11 +46,11 @@ httpd_port: 9090
 cloudera_archive_base_url: http://{{repo_host}}:{{httpd_port}}/cloudera-repos
 enabled_services: "{{ clusters | map(attribute='host_templates') | map('dict2items') | map('map', attribute='value') | flatten | map('dict2items') | map('map', attribute='key') | flatten | unique }}"
 #enable_spark3: "{{ 'SPARK3_ON_YARN' in (enabled_services | default([])) }}"
-#enable_cfm:    "{{ 'NIFI' in (enabled_services | default([])) or 'NIFIREGISTRY' in (enabled_services | default([])) }}"
-#enable_csa:    "{{ 'SQL_STREAM_BUILDER' in (enabled_services | default([])) or 'FLINK' in (enabled_services | default([])) }}"
+#
+enable_csa:    "{{ 'SQL_STREAM_BUILDER' in (enabled_services | default([])) or 'FLINK' in (enabled_services | default([])) }}"
+enable_cfm:    "{{ 'NIFI' in (enabled_services | default([])) or 'NIFIREGISTRY' in (enabled_services | default([])) }}"
+#enable_cfm: true
 
-enable_cfm: false
-enable_csa: false
 
 cloudera_manager_repo_url:  "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions.cm.version }}"
 
@@ -65,11 +65,14 @@ postgresql_data_dir: /data/rbdms
 kafka_disks:
   - /data01/kafka
   - /data02/kafka
-
+  - /data03/kafka
+  
 datanode_disks:
   - /data01
   - /data02
-
+  - /data03
+  - /data04
+  - /data05
 namenode_disks:
   - /data/nn
 

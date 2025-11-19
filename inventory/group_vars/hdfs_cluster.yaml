@@ -13,7 +13,7 @@ cldr_versions:
   #   parcel: "SPARK3-3.3.2.3.3.7191000.9-2-1.p0.65266237-el9.parcel"
   
   cfm:
-    version: "2.1.7.2003"
+    version: "2.1.7.2003-5"
     parcel: "CFM-2.1.7.2003-5-el9.parcel"
     csds:
       - "NIFIREGISTRY-1.28.1.2.1.7.2003-5.jar"

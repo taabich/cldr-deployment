@@ -20,17 +20,16 @@ cloudera_manager_csds: >-
     []
     + (enable_cfm | ternary(
         [
-          cloudera_archive_base_url ~ "/cfm2/" ~ cldr_versions.cfm.version ~ "/" ~ cldr_versions.cfm.csds[0],
-          cloudera_archive_base_url ~ "/cfm2/" ~ cldr_versions.cfm.version ~ "/" ~ cldr_versions.cfm.csds[1]
-        ],
+          cloudera_archive_base_url ~ "/cfm2/" ~ (cldr_versions.cfm.version | default('N/A')) ~ "/" ~ (cldr_versions.cfm.csds[0] | default('')),
+          cloudera_archive_base_url ~ "/cfm2/" ~ (cldr_versions.cfm.version | default('N/A')) ~ "/" ~ (cldr_versions.cfm.csds[1] | default(''))
+        ] if (cldr_versions.cfm | default({})) else [],
         []
       ))
     + (enable_csa | ternary(
         [
-          cloudera_archive_base_url ~ "/csa/" ~ cldr_versions.csa.version ~ "/" ~ cldr_versions.csa.ssb_jar,
-          cloudera_archive_base_url ~ "/csa/" ~ cldr_versions.csa.version ~ "/" ~ cldr_versions.csa.flink_jar
-        ],
+          cloudera_archive_base_url ~ "/csa/" ~ (cldr_versions.csa.version | default('N/A')) ~ "/" ~ (cldr_versions.csa.ssb_jar | default('')),
+          cloudera_archive_base_url ~ "/csa/" ~ (cldr_versions.csa.version | default('N/A')) ~ "/" ~ (cldr_versions.csa.flink_jar | default(''))
+        ] if (cldr_versions.csa | default({})) else [],
         []
       ))
   }}
-
