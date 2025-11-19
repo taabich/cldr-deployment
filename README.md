@@ -186,6 +186,12 @@ checkpoint_disks: /data/nn1
 
 This is the recommended ordered execution of the Ansible playbooks.
 
+- How to run playbook ?
+``` bash
+ansible-playbook -i <INVENTORY_FILE> <PLAYBOOK_NAME.yml>
+```
+
+
 ### Pre-check Commands
 
 Set Ansible environment:
@@ -251,10 +257,10 @@ ansible -m ping all
 | **Active Directory (AD)** | AD integration prep | `deploy_krb5_client.yml` |
 | **MIT-KDC** | MIT KDC deployment | **TODO** |
 
-Final step:\
+Final step:
 **deploy_kerberos.yml** -- Enables Kerberos via CM API.
 
-Fixes:\
+Fixes:
 **deploy_fix_krb5.yml** -- Applies Kerberos overrides.
 
 
@@ -293,8 +299,7 @@ no_proxy: "localhost,127.0.0.1,::1"
 enable_yum_proxy: true
 ```
 
-Playbook:\
-- **proxy_update.yml**
+Playbook is: **proxy_update.yml**
 
 
 
@@ -305,10 +310,4 @@ Playbook:\
 
 
 
-## 7. Running the Playbooks
 
-### 7.1 Command Structure
-
-``` bash
-ansible-playbook -i <INVENTORY_FILE> <PLAYBOOK_NAME.yml>
-```
