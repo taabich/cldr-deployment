@@ -6,7 +6,7 @@ krb5_kdc_type: 'Active Directory'
 krb5_admin: 'cdpadmin'                          # Admin user for Kerberos (IPA)
 krb5_password: "Cloudera2024"      # Admin password reused from Cloudera Manager
 krb5_domain: cloudera.infra            # Kerberos domain
-krb5_realm: "{{ krb5_domain|upper }}"      # Realm in uppercase (e.g., CDPQUAL.ONDA.INTRA)
+krb5_realm: "{{ krb5_domain|upper }}"      # Realm in uppercase (e.g., )
 
 
 krb5_kdc_active_directory_suffix: "OU=CDPCluster,DC=cloudera,DC=infra"
