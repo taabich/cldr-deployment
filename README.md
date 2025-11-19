@@ -123,6 +123,7 @@ cloudera_archive_base_url: "http://{{ repo_host }}:{{ httpd_port }}/cloudera-rep
 cloudera_manager_repo_url: "{{ cloudera_archive_base_url }}/cm7/{{ cldr_versions.cm.version }}"
 
 ```
+---
 
 ## 4 Disk Configuration and Storage
 ### 4.1 General OS Disk Layout (All Nodes)
@@ -182,6 +183,7 @@ checkpoint_disks: /data/nn1
 | **Ozone OM/SCM** | `ozone_om_disk`, `ozone_scm_disk` | OM: RAID1 NVMe. SCM: RAID1 NVMe/SSD. |
 | **Ozone Data** | `ozone_datanode_storage_disks` | Must NOT be shared with HDFS or other systems. |
 
+---
 ## 5. Installation Workflow
 
 This is the recommended ordered execution of the Ansible playbooks.
@@ -244,6 +246,7 @@ ansible -m ping all
 -   **install_cluster.yml** -- Deploy the CDP cluster using the CM API.
 
 
+---
 
 ## 6. Advanced Configuration (TLS, Kerberos, Proxy)
 
