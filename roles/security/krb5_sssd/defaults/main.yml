@@ -16,10 +16,10 @@ ldap_groups_base: "ou=groups,{{ ldap_suffix }}"
 
 ipaserver_domain: "{{ ansible_fqdn | extract_domain  }}"
 ipaserver_realm: "{{ krb5_realm }}"
-ipa_server: "{{ groups['krb5_server']| first }}"
+ipa_server: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
 
 # client
-ldap_server: "{{ groups['krb5_server']| first }}"
+ldap_server: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
 ldap_admin_dn: "{{ ldap_rootdn }}"
 ldap_admin_dn_password: "{{ krb5_password }}"
 
@@ -28,7 +28,7 @@ ldap_groups: []
 
 ldap_users: []
 
-kdc_host: "{{ groups['krb5_server']| first }}"
+kdc_host: "{{ ad_domain_controller | default(groups.krb5_server|first)}}"
 
 override_gid: -1
 

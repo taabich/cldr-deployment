@@ -1,5 +1,5 @@
 #Configuration of kerberos
-ad_domain_controller: "{{ groups['krb5_server'][0] }}"
+ad_domain_controller: "EC2AMAZ-LOAEQMH.cloudera.infra"
 #ad_domain_controller: 'ec2-52-86-152-254.compute-1.amazonaws.com'
 krb5_kdc_type: 'Active Directory'
 #krb5_kdc_type: 'Red Hat IPA'               # Kerberos KDC type (none, MIT KDC, AD, Red Hat IPA)
@@ -34,7 +34,7 @@ ldap_bind_dn: "CN={{ krb5_admin }},{{ user_dn }}"
 
 
 auth_provider:
-  ldap_url: "ldaps://{{ (groups['krb5_server'][0] if ('krb5_server' in groups and groups['krb5_server']) else (krb5_kdc_host if krb5_kdc_host is defined else None)) }}:636"
+  ldap_url: "ldaps://{{ krb5_kdc_host }}:636"
 
   ldap_base_dn: "{{ base_dn }}"
   ldap_bind_user_dn: "{{ ldap_bind_dn }}"

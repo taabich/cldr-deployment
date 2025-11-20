@@ -1,5 +1,5 @@
 - name: Deploy postgres repos
-  hosts: httpd_repo
+  hosts: db_server
   become: yes
   roles:
     - extras/repo_postgresql

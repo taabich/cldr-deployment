@@ -1,6 +1,6 @@
 
 
-cluster_name: "medium"
+cluster_name: "clprd"
 cldr_versions:
   cm:
     version: "7.13.1.500"
@@ -14,7 +14,7 @@ cldr_versions:
   
   cfm:
     version: "4.11.0.0-352"
-    parcel: "CFM-2.4.0.4.11.0.0-352.parcel"
+    parcel: "CFM-4.11.0.0-352-el9.parcel"
     csds:
       - "NIFIREGISTRY-2.4.0.4.11.0.0-352.jar"
       - "NIFI-2.4.0.4.11.0.0-352.jar"
