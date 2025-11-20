@@ -277,7 +277,7 @@ TLS Directory Example:
     /tmp/tls/
       ├── certs/<fqdn>.pem
       ├── keys/<fqdn>.key
-      └── ca/ca-chain.cert.pem
+      └── certs/ca-chain.cert.pem
 
 ``` yaml
 tls_workdir_localpath: /tmp/tls
