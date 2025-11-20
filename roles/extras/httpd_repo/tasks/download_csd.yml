@@ -23,7 +23,7 @@
     url_username: "{{ cloudera_manager_repo_username | default('', true) }}"
     url_password: "{{ cloudera_manager_repo_password | default('', true) }}"
 
-- name: Extract CM7 repo tarball
+- name: Extract CSD repo tarball
   ansible.builtin.unarchive:
     src: "{{ tmpfile.path }}/{{ download_url| basename }}"              # <-- correction: .path (pas ;path)
     dest: "{{ destination }}"

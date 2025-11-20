@@ -40,9 +40,12 @@ httpd_cfm:
     dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}"
     sha: true
     manifest: true
-  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/CFM-{{ cldr_versions.cfm.version }}-csds.tar.gz"
-    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}"
-    csd: true
+  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/{{ cldr_versions.cfm.csds[0]}}"
+    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}/"
+    jar: true
+  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/{{ cldr_versions.cfm.csds[1]}}"
+    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}/"
+    jar: true
 
 httpd_csa:
   - url: "https://archive.cloudera.com/p/csa/{{ cldr_versions.csa.version }}/parcels/{{ cldr_versions.csa.flink_parcel }}"

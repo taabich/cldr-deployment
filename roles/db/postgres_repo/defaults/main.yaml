@@ -2,7 +2,8 @@ postgres_version: 17
 postgres_repo_name: "pgdg{{ postgres_version | replace('.','') }}"
 postgres_repo_key: "{{repo_postgres_url}}/RPM-GPG-KEY-PGDG-{{ postgres_version | replace('.','') }}"
 
-repo_postgres_url: "{{ cloudera_repo_path }}/{{postgres_repo_name}}"
+repo_postgres_url: "{{ cloudera_archive_base_url }}/{{postgres_repo_name}}"
 
 
 
+#cloudera_repo_path: /var/www/html/{{ cloudera_archive_base_url |  basename }}

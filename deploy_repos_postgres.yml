@@ -2,4 +2,4 @@
   hosts: db_server
   become: yes
   roles:
-    - extras/repo_postgresql
+    - db/postgres_repo
