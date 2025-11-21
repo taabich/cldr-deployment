@@ -19,7 +19,9 @@
     {% set serv_j = joiner(",") %}
     {% for service in enabled_services %}
     {{ serv_j() }}
-    {% set t = service + '.j2' %}{% include t %}
+    {% set service_lc = service | lower %}
+    {% set t = service_lc ~ '.j2' %}
+    {% include t %}
     {% endfor %}
   ],
   "hostTemplates" : {% include 'host_templates.j2' %},
