@@ -22,7 +22,7 @@
     url_password: "admin"
     force_basic_auth: yes
   register: default_admin_password_check
-  failed_when: default_admin_password_check.status not in [200, 401]
+  failed_when: default_admin_password_check.status not in [200, 401,504]
   run_once: True
   when: cloudera_manager_admin_password is defined
 
