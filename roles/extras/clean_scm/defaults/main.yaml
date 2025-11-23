@@ -1,0 +1,15 @@
+cm_server_packages:
+  - cloudera-manager-server
+  - cloudera-manager-daemons
+  - cloudera-manager-agent   # facultatif si tu veux supprimer l'agent aussi
+
+cm_paths_to_clean:
+  - /etc/cloudera-scm-server
+  - /etc/cloudera-scm-agent
+  - /var/lib/cloudera-scm-server
+  - /var/lib/cloudera-scm-agent
+  - /var/log/cloudera-scm-server
+  - /var/log/cloudera-scm-agent
+  - /opt/cloudera
+  - /run/cloudera-scm-server
+  - /run/cloudera-scm-agent

@@ -2,4 +2,4 @@
   hosts: httpd_repo
   become: yes
   roles:
-    - extras/httpd_repo
+    - extras/nginx_repo

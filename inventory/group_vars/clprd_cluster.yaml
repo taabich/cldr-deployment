@@ -11,13 +11,13 @@ cldr_versions:
   # spark3:
   #   version: "3.3.7191000.9"
   #   parcel: "SPARK3-3.3.2.3.3.7191000.9-2-1.p0.65266237-el9.parcel"
-  
+    
   cfm:
-    version: "4.11.0.0-352"
-    parcel: "CFM-4.11.0.0-352-el9.parcel"
+    version: "2.1.7.2000-69"
+    parcel: "CFM-2.1.7.2000-69-el9.parcel"
     csds:
-      - "NIFIREGISTRY-2.4.0.4.11.0.0-352.jar"
-      - "NIFI-2.4.0.4.11.0.0-352.jar"
+      - "NIFIREGISTRY-1.28.1.2.1.7.2000-69.jar"
+      - "NIFI-1.28.1.2.1.7.2000-69.jar"
   # csa:
   #   version: "1.15.2.0"
   #   flink_jar: "FLINK-1.20.1-csa1.15.2.0-67992430.jar"

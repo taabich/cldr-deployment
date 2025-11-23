@@ -146,6 +146,14 @@
 # ================================================================
 # 5) Prepare destination dir on each Cloudera Manager host
 # ================================================================
+
+- name: clean and create destination
+  become: true
+  ansible.builtin.file:
+    path: "{{ cmca_dir }}"
+    state: absent
+
+
 - name: Ensure destination directory exists on CM host(s)
   become: true
   ansible.builtin.file:

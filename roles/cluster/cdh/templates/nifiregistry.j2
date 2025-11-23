@@ -2,7 +2,12 @@
   "refName": "nifiregistry",
   "serviceType": "NIFIREGISTRY",
   "displayName": "NIFIREGISTRY",
-  "serviceConfigs": [],
+  "serviceConfigs": [
+    {
+      "name": "ranger_service",
+      "value": "none"
+    }
+  ],
   "roleConfigGroups": [
     {
       "refName": "nifiregistry-NIFI_REGISTRY_SERVER-BASE",
@@ -15,10 +20,6 @@
         {
           "name": "nifi.registry.security.identity.mapping.value.kerb",
           "value": "$1"
-        },
-        {
-          "name": "ranger_service",
-          "value": "none"
         }
       ],
       "base": true

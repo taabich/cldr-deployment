@@ -1,0 +1,50 @@
+- name: Stop Cloudera Manager Server
+# ignore error if service does not exist
+  service:
+    name: cloudera-scm-server
+    state: stopped
+  ignore_errors: yes
+
+- name: Stop Cloudera Manager Agent
+  service:
+    name: cloudera-scm-agent
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable CM services
+  service:
+    name: "{{ item }}"
+    enabled: no
+  ignore_errors: yes
+  loop:
+    - cloudera-scm-server
+    - cloudera-scm-agent
+
+- name: Remove CM packages
+  package:
+    name: "{{ cm_server_packages }}"
+    state: absent
+
+- name: Remove CM directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ cm_paths_to_clean }}"
+
+- name: Clean RPM leftovers
+  shell: |
+    rpm -qa | grep cloudera | xargs -r rpm -e --noscripts
+  args:
+    warn: false
+  ignore_errors: yes
+
+- name: Delete CM users (optional)
+  user:
+    name: "{{ item }}"
+    state: absent
+    remove: yes
+  loop:
+    - cloudera-scm
+    - scm
+  ignore_errors: yes
+

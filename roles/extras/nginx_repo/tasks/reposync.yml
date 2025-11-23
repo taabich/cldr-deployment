@@ -1,0 +1,12 @@
+---
+- name: Run reposync
+  command: >
+    dnf reposync -y
+    --repo={{ postgres_repo_name }}
+    --download-path={{  postgres_repo_dir }}
+  args:
+    creates: "{{ postgres_repo_dir }}/repodata"
+
+- name: Create metadata
+  command: createrepo {{ postgres_repo_dir }}
+  when: postgres_repo_dir is directory

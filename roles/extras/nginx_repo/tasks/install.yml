@@ -1,0 +1,58 @@
+- name: Install nginx
+  package:
+    name: nginx
+    state: present
+
+- name: Create cloudera repos directory
+  file:
+    path: "{{ cloudera_repo_path }}"
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+    recurse: yes
+
+
+
+- name: Deploy nginx configuration for Cloudera repos
+  copy:
+    dest: "{{ nginx_conf_file }}"
+    mode: '0644'
+    content: |
+      server {
+          listen {{ httpd_port }};
+          server_name {{ ansible_fqdn }};
+
+          root {{ cloudera_repo_root }};
+
+          location /cloudera-repos/ {
+              autoindex on;
+              autoindex_exact_size off;
+              autoindex_localtime on;
+          }
+      }
+
+- name: Test nginx configuration
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+
+- name: Fail if nginx configuration test failed
+  fail:
+    msg: "NGINX configuration test FAILED: {{ nginx_test.stderr }}"
+  when: nginx_test.rc != 0
+
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+
+
+
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  when: ansible_facts.services['firewalld.service'] is defined
+  ignore_errors: true

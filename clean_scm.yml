@@ -1,0 +1,10 @@
+---
+- name: Remove Cloudera Manager Server cleanly
+  hosts: cluster, cloudera_manager
+  become: yes
+  gather_facts: yes
+
+  roles:
+
+    - role: extras/clean_scm
+      state: present

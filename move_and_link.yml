@@ -1,0 +1,53 @@
+---
+- name: Move cert files and replace with symlinks
+  hosts: cluster,cloudera_manager
+  become: yes
+  vars:
+    cert_dir: "/var/lib/cloudera-scm-agent/agent-cert"
+    dest_original: "{{ cert_dir }}/original"
+
+    cert_files:
+      - dep-host_key_cert_chain_decrypted.pem
+      - cm-auto-global_truststore.jks
+      - cm-auto-host_key_cert_chain.pem
+      - cm-auto-host_key.pw
+      - cm-auto-in_cluster_ca_cert.pem
+      - cm-auto-global_cacerts.pem
+      - cm-auto-host_cert_chain.pem
+      - cm-auto-host_key.pem
+      - cm-auto-host_keystore.jks
+      - cm-auto-in_cluster_truststore.jks
+
+  tasks:
+
+    - name: Ensure 'original' directory exists
+      file:
+        path: "{{ dest_original }}"
+        state: directory
+        owner: cloudera-scm
+        group: cloudera-scm
+        mode: '0755'
+
+    - name: Move files to original/ directory (if they are not already moved)
+      command: mv "{{ cert_dir }}/{{ item }}" "{{ dest_original }}/{{ item }}"
+      args:
+        removes: "{{ cert_dir }}/{{ item }}"
+      ignore_errors: yes
+      loop: "{{ cert_files }}"
+
+    - name: Delete existing file if move failed (optional cleanup)
+      file:
+        path: "{{ cert_dir }}/{{ item }}"
+        state: absent
+      when: item is file
+      loop: "{{ cert_files }}"
+      ignore_errors: yes
+
+    - name: Create symlink to original location
+      file:
+        src: "{{ dest_original }}/{{ item }}"
+        dest: "{{ cert_dir }}/{{ item }}"
+        state: link
+        owner: cloudera-scm
+        group: cloudera-scm
+      loop: "{{ cert_files }}"

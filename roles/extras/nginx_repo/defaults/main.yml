@@ -1,0 +1,78 @@
+
+downlaod_base: true
+downlaod_spark3: true
+downlaod_nifi: true
+
+httpd_port: 9090
+
+nginx_conf_file: /etc/nginx/conf.d/cloudera-repos.conf
+cloudera_repo_root: /var/www/html
+
+download_url: "{{ cloudera_manager_download_url }}"
+cm_repo_dir:  "{{ cloudera_repo_path }}/"
+tarball_name: "{{ download_url | basename }}"
+local_tarball_path: "/tmp/{{ tarball_name }}"
+
+cloudera_repo_path: /var/www/html/{{ cloudera_archive_base_url |  basename }}
+
+
+# Core pieces always included
+httpd_core:
+  - url: "https://archive.cloudera.com/p/cdh7/{{ cldr_versions.cdh.version }}/parcels/{{ cldr_versions.cdh.parcel }}"
+    dest: "{{ cloudera_repo_path }}/cdh7/{{ cldr_versions.cdh.version }}"
+    sha1: true
+    sha256: true
+    manifest: true
+
+  - url: "https://archive.cloudera.com/p/cm7/{{ cldr_versions.cm.version }}/repo-as-tarball/cm{{ cldr_versions.cm.version }}-{{ cldr_versions.cm.os }}.tar.gz"
+    dest: "{{ cloudera_repo_path }}/cm7/{{ cldr_versions.cm.version }}"
+    tar: true
+
+# Optional blocks
+httpd_spark3:
+  - url: "https://archive.cloudera.com/p/spark3/{{ cldr_versions.spark3.version }}/parcels/{{ cldr_versions.spark3.parcel }}"
+    dest: "{{ cloudera_repo_path }}/spark3/{{ cldr_versions.spark3.version }}"
+    sha1: true
+    sha256: false
+    manifest: true
+
+httpd_cfm:
+  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/{{ cldr_versions.cfm.parcel }}"
+    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}"
+    sha: true
+    manifest: true
+  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/{{ cldr_versions.cfm.csds[0]}}"
+    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}/"
+    jar: true
+  - url: "https://archive.cloudera.com/p/cfm2/{{ cldr_versions.cfm.version.split('-')[0] }}/redhat9/yum/tars/parcel/{{ cldr_versions.cfm.csds[1]}}"
+    dest: "{{ cloudera_repo_path }}/cfm2/{{ cldr_versions.cfm.version }}/"
+    jar: true
+
+httpd_csa:
+  - url: "https://archive.cloudera.com/p/csa/{{ cldr_versions.csa.version }}/parcels/{{ cldr_versions.csa.flink_parcel }}"
+    dest: "{{ cloudera_repo_path }}/csa/{{ cldr_versions.csa.version }}"
+    sha1: true
+    manifest: true
+  - url: "https://archive.cloudera.com/p/csa/{{ cldr_versions.csa.version }}/csd/{{ cldr_versions.csa.flink_jar }}"
+    dest: "{{ cloudera_repo_path }}/csa/{{ cldr_versions.csa.version }}"
+    jar: true
+  - url: "https://archive.cloudera.com/p/csa/{{ cldr_versions.csa.version }}/csd/{{ cldr_versions.csa.ssb_jar }}"
+    dest: "{{ cloudera_repo_path }}/csa/{{ cldr_versions.csa.version }}"
+    jar: true
+
+enable_spark3: false
+enable_cfm: false
+enable_csa: false
+# Final list to loop on:
+httpd_repos: >-
+  {{
+    httpd_core
+    + (enable_spark3 | ternary(httpd_spark3, []))
+    + (enable_cfm    | ternary(httpd_cfm,    []))
+    + (enable_csa    | ternary(httpd_csa,    []))
+  }}
+
+
+postgres_repo_name: pgdg17
+postgres_repo_dir: "{{ cloudera_repo_path }}"
+postgres_repo_download: https://download.postgresql.org/pub/repos/yum/17/redhat/rhel-9-x86_64/

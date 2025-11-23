@@ -1,0 +1,44 @@
+- debug:
+    msg: "Start downloading: {{ download_url }} ==>{{ destination }}"
+
+- name: Create a temporary file
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: arch
+  register: tmpfile
+
+- name: Create destination directory
+  ansible.builtin.file:
+    path: "{{ destination }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ ansible_user | default('root') }}"
+    group: "{{ ansible_user | default('root') }}"
+
+- name: Download Cloudera CM7 repo tarball
+  ansible.builtin.get_url:
+    url: "{{ download_url }}"
+    dest: "{{ tmpfile.path }}/{{ download_url| basename }}"
+    mode: "0644"
+    url_username: "{{ cloudera_manager_repo_username | default('', true) }}"
+    url_password: "{{ cloudera_manager_repo_password | default('', true) }}"
+
+- name: Extract CM7 repo tarball
+  ansible.builtin.unarchive:
+    src: "{{ tmpfile.path }}/{{ download_url| basename }}"              # <-- correction: .path (pas ;path)
+    dest: "{{ destination }}"
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+
+- name: Set permissions recursively on repo path
+  ansible.builtin.file:
+    path: "{{ destination }}"
+    state: directory
+    recurse: true
+    mode: "0755"
+
+- name: Remove tarball after extraction
+  ansible.builtin.file:
+    path: "{{ tmpfile.path }}"
+    state: absent
