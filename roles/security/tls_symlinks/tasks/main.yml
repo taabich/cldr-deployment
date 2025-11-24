@@ -1,0 +1,24 @@
+
+
+- name: Ensure backup/original directory exists
+  file:
+    path: "{{ cm_agent_cert_backupdir }}"
+    state: directory
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: "0750"
+
+- name: Move original files to backup directory
+  command: mv "{{ cm_agent_cert_dir }}/{{ item }}" "{{ cm_agent_cert_backupdir }}/{{ item }}"
+  args:
+    removes: "{{ cm_agent_cert_dir }}/{{ item }}"
+  loop: "{{ cm_auto_files }}"
+
+- name: Create symlink pointing to original file
+  file:
+    src: "{{ cm_agent_cert_backupdir }}/{{ item }}"
+    dest: "{{ cm_agent_cert_dir }}/{{ item }}"
+    state: link
+    owner: cloudera-scm
+    group: cloudera-scm
+  loop: "{{ cm_auto_files }}"

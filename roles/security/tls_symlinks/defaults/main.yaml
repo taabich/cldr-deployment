@@ -1,0 +1,13 @@
+cm_auto_files:
+  - cm-auto-global_cacerts.pem
+  - cm-auto-host_cert_chain.pem
+  - cm-auto-host_key.pem
+  - cm-auto-host_keystore.jks
+  - cm-auto-in_cluster_truststore.jks
+  - cm-auto-global_truststore.jks
+  - cm-auto-host_key_cert_chain.pem
+  - cm-auto-host_key.pw
+  - cm-auto-in_cluster_ca_cert.pem
+
+cm_agent_cert_dir: "/var/lib/cloudera-scm-agent/agent-cert"
+cm_agent_cert_backupdir: "/var/lib/cloudera-scm-agent/agent-cert/original"

@@ -1,0 +1,29 @@
+- name: Move cm-auto TLS files and create symlinks
+  become: yes
+  hosts: cluster:cloudera_manager
+  tasks:
+  - name: Fix permissions of all certificate files
+    file:
+      path: "/var/lib/cloudera-scm-agent/agent-cert/original"
+      owner: cloudera-scm
+      group: cloudera-scm
+      mode: "0750"
+
+  - name: Fix permissions of all certificate files
+    file:
+      path: "/var/lib/cloudera-scm-agent/agent-cert/original/{{ item }}"
+      owner: cloudera-scm
+      group: cloudera-scm
+      mode: "0750"
+    loop:
+      - cm-auto-global_cacerts.pem
+      - cm-auto-host_cert_chain.pem
+      - cm-auto-host_key.pem
+      - cm-auto-host_keystore.jks
+      - cm-auto-in_cluster_truststore.jks
+      - cm-auto-global_truststore.jks
+      - cm-auto-host_key_cert_chain.pem
+      - cm-auto-host_key.pw
+      - cm-auto-in_cluster_ca_cert.pem
+
+  

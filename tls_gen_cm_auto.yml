@@ -1,0 +1,8 @@
+---
+- name: Generate Cloudera cm-auto certificates and keystores
+  hosts: cluster:cloudera_manager
+  become: true
+  tasks:
+   - name:  CM AUTO
+     ansible.builtin.import_role:
+        name: security/tls_cm_auto

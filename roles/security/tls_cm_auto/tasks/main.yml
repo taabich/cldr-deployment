@@ -1,0 +1,185 @@
+
+- set_fact:
+    tls_signed_certs_dir: "{{ local_certs_dir }}"
+  when: tls_signed_certs_dir is not defined
+
+- set_fact:
+    tls_ca_certs:
+      - alias: cluster_intca
+        path: "{{ tls_signed_certs_dir }}/{{ca_server_intermediate_cert_name}}"
+        remotepath: "{{ cm_agent_cert_dir }}/cm-auto-in_cluster_ca_cert.pem"
+      - alias: cluster_rootca
+        path: "{{ tls_signed_certs_dir }}/{{ca_server_root_cert_name}}"
+        remotepath: "{{ cm_agent_cert_dir }}/cm-auto-global_cacerts.pem"
+  when: tls_ca_certs is not defined
+
+- name: Check if signed cert is available
+  become: no
+  local_action: stat path={{ tls_signed_certs_dir }}/{{ ansible_fqdn }}.pem
+  register: signed_cert
+
+
+- fail:
+    msg: >
+      "Signed cert for {{ ansible_fqdn }} could not be found. If manual signing is
+      required, do this now and re-run the playbook with 'tls_signed_certs_dir' variable set.
+  when:
+    - not signed_cert.stat.exists
+
+
+
+- name: Rmove old keys
+  file:
+   
+    path: "{{ cm_agent_cert_dir }}/{{ item }}"
+    state: absent
+
+  loop: "{{ cm_auto_files }}"
+
+- name: Ensure certificate directory exists
+  file:
+    path: "{{ cm_agent_cert_dir }}"
+    state: directory
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: '0755'
+
+
+- name: Copy host key
+  copy:
+    src: "{{local_keys_dir}}/{{ ansible_fqdn }}.key"
+    dest: "{{ cm_agent_cert_dir }}/cm-auto-host_key.pem"
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: '0600'
+
+- name: Copy host key
+  copy:
+    src: "{{local_certs_dir}}/{{ ansible_fqdn }}.pem"
+    dest: "{{ cm_agent_cert_dir }}/cm-auto-host_cert_chain.pem"
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: '0640'
+
+
+
+
+
+- name: Copy CA certs to hosts
+  copy:
+    src: "{{ cacert.path }}"
+    dest: "{{  cacert.remotepath  }}"
+    mode: 0644
+  loop: "{{ tls_ca_certs }}"
+  loop_control:
+    loop_var: cacert
+  register: copied
+
+
+- name: Generate host_key_cert_chain.pem
+  shell: |
+    cat {{ cm_agent_cert_dir }}/cm-auto-host_key.pem {{ cm_agent_cert_dir }}/cm-auto-host_cert_chain.pem > {{ cm_agent_cert_dir }}/cm-auto-host_key_cert_chain.pem
+  args:
+    creates: "{{ cm_agent_cert_dir }}/cm-auto-host_key_cert_chain.pem"
+
+- name: Create password file for keystore
+  copy:
+    dest: "{{ cm_agent_cert_dir }}/cm-auto-host_key.pw"
+    content: "{{ tls_keystore_password }}"
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: '0600'
+
+
+
+###################################################################
+#  Generate host keystore (JKS)
+###################################################################
+- name: Generate host keystore (JKS)
+  shell: |
+    openssl pkcs12 \
+      -export \
+      -in {{ cm_agent_cert_dir }}/cm-auto-host_cert_chain.pem \
+      -inkey {{ cm_agent_cert_dir }}/cm-auto-host_key.pem \
+      -out {{ cm_agent_cert_dir }}/host_keystore.p12 \
+      -password pass:{{ tls_keystore_password }}
+
+    keytool -importkeystore \
+      -srckeystore {{ cm_agent_cert_dir }}/host_keystore.p12 \
+      -srcstoretype PKCS12 \
+      -srcstorepass {{ tls_keystore_password }} \
+      -destkeystore {{ cm_agent_cert_dir }}/cm-auto-host_keystore.jks \
+      -deststoretype JKS \
+      -deststorepass {{ tls_keystore_password }} \
+      -noprompt
+  args:
+    creates: "{{ cm_agent_cert_dir }}/cm-auto-host_keystore.jks"
+
+
+- name: Install CA certificates into keystore
+  java_cert:
+    executable: "{{ keytool_path }}"
+    cert_alias: "{{ cacert.alias }}"
+    cert_path: "{{ cacert.remotepath }}"
+    keystore_path: "{{ tls_keystore_path }}"
+    keystore_pass: "{{ tls_keystore_password }}"
+    keystore_type: JKS
+    state: present
+  loop: "{{ tls_ca_certs }}"
+  loop_control:
+    loop_var: cacert
+
+###################################################################
+#  Generate truststores (JKS)
+###################################################################
+- name: Generate cm-auto-global_truststore.jks
+  shell: |
+    keytool -import \
+      -alias rootca \
+      -file {{ cm_agent_cert_dir }}/cm-auto-global_cacerts.pem \
+      -keystore {{ cm_agent_cert_dir }}/cm-auto-global_truststore.jks \
+      -storepass {{ tls_truststore_password }} \
+      -noprompt
+  args:
+    creates: "{{ cm_agent_cert_dir }}/cm-auto-global_truststore.jks"
+
+- name: Generate cm-auto-in_cluster_truststore.jks
+  shell: |
+    keytool -import \
+      -alias cluster-ca \
+      -file {{ cm_agent_cert_dir }}/cm-auto-in_cluster_ca_cert.pem \
+      -keystore {{ cm_agent_cert_dir }}/cm-auto-in_cluster_truststore.jks \
+      -storepass {{ tls_truststore_password }} \
+      -noprompt
+  args:
+    creates: "{{ cm_agent_cert_dir }}/cm-auto-in_cluster_truststore.jks"
+
+
+# - name: Install CA certificates into truststore
+#   java_cert:
+#     executable: "{{ keytool_path }}"
+#     cert_alias: "{{ cacert.alias }}"
+#     cert_path: "{{ cacert.remotepath }}"
+#     keystore_create: true
+#     keystore_path: "{{ tls_truststore_path }}"
+#     keystore_pass: "{{ tls_truststore_password }}"
+#     keystore_type: JKS
+#     state: present
+#   loop: "{{ tls_ca_certs }}"
+#   loop_control:
+#     loop_var: cacert
+
+# - name: Fix permissions on all generated files
+#   file:
+#     path: "{{ cm_agent_cert_dir }}"
+#     owner: cloudera-scm
+#     group: cloudera-scm
+#     recurse: yes
+#     mode: '0644'
+
+- name: Fix permissions on all generated files
+  file:
+    path: "{{ cm_agent_cert_dir }}/cm-auto-global_truststore.jks"
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: '0755'

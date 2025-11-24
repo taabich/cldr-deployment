@@ -1,0 +1,8 @@
+---
+- name: Move cm-auto TLS files and create symlinks
+  become: yes
+  hosts: cluster:cloudera_manager
+  tasks:
+   - name:  symlink
+     ansible.builtin.import_role:
+        name: security/tls_symlinks
